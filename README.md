@@ -76,6 +76,19 @@ Both channels use the same flows and the same API, so a client can book by phone
 
 The scheduling engine (`src/lib/hours.ts`) is shared by the server, the website and the AI: treatment durations, buffers between clients, practitioners' working days, min. notice and max. days ahead. The server re-checks every booking and rebooking, and in Supabase an exclusion constraint makes double-booking a practitioner impossible.
 
+## Languages
+
+The site follows the visitor's browser language (`Accept-Language`) and falls back to English. Visitors can switch between **English, Español, Deutsch and العربية** in the header, footer or clinic pages; the choice is stored in the `lang` cookie. Arabic is rendered right-to-left with Noto Sans Arabic.
+
+- UI text is written in English and wrapped in `t("…")` (`useT()` in client components, `await getT()` in server components). Dates, prices and durations use the locale-aware helpers in `src/lib/format.ts`.
+- Translations live in `scripts/i18n/tr*.py` as `(English, Spanish, German, Arabic)` rows. After changing UI text run:
+  ```bash
+  python3 scripts/i18n/extract.py   # collect every English string → scripts/i18n/keys.json
+  python3 scripts/i18n/build.py     # write src/lib/i18n/dict/{es,de,ar}.ts and list untranslated keys
+  ```
+  Missing keys fall back to English (names, addresses and brands are intentionally left untranslated).
+- The external AIbooking widget and the Vapi assistant set their own language in their dashboards; the built-in demo receptionist answers in English.
+
 ## Architecture
 
 ```

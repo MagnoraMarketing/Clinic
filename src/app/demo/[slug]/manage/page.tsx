@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n/I18nProvider";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import type { Appointment } from "@/lib/types";
@@ -20,6 +21,7 @@ export default function ManagePage() {
 
 /** Self-service rebooking & cancellation – the same API the AI receptionist uses. */
 function Manage() {
+  const { t, locale } = useI18n();
   const { clinic: c } = useClinic();
   const params = useSearchParams();
   const accent = c.accentColor;
@@ -81,9 +83,9 @@ function Manage() {
           <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-400/15 text-emerald-300">
             <Icon name={done.a.status === "cancelled" ? "close" : "refresh"} className="h-8 w-8" />
           </span>
-          <h1 className="h-display mt-4 text-3xl">{done.a.status === "cancelled" ? "Appointment cancelled" : "Appointment moved"}</h1>
+          <h1 className="h-display mt-4 text-3xl">{done.a.status === "cancelled" ? t("Appointment cancelled") : t("Appointment moved")}</h1>
           <p className="mt-3 text-ink-300">{done.text}</p>
-          <p className="mt-1 text-sm text-ink-400">Reference {done.a.reference}</p>
+          <p className="mt-1 text-sm text-ink-400">{t("Reference {ref}", { ref: done.a.reference })}</p>
         </div>
       </div>
     );
@@ -95,29 +97,29 @@ function Manage() {
       <p className="text-sm font-semibold tracking-wider uppercase" style={{ color: accent }}>
         {c.name}
       </p>
-      <h1 className="h-display mt-1 text-4xl sm:text-5xl">Move or cancel your appointment</h1>
-      <p className="mt-2 text-ink-400">{c.booking.rules}</p>
+      <h1 className="h-display mt-1 text-4xl sm:text-5xl">{t("Move or cancel your appointment")}</h1>
+      <p className="mt-2 text-ink-400">{t(c.booking.rules)}</p>
 
       {!found && (
         <form onSubmit={lookup} className="card mt-8 grid gap-4 p-6 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <label>
-            <span className="label">Booking reference</span>
-            <input required className="input uppercase" value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. CA-4201" />
+            <span className="label">{t("Booking reference")}</span>
+            <input required className="input uppercase" value={ref} onChange={(e) => setRef(e.target.value)} placeholder={t("e.g. {example}", { example: "CA-4201" })} />
           </label>
           <label>
-            <span className="label">Phone number</span>
-            <input required type="tel" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="The number you booked with" />
+            <span className="label">{t("Phone number")}</span>
+            <input required type="tel" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("The number you booked with")} />
           </label>
           <button disabled={busy} className="btn text-ink-950" style={{ background: accent }}>
-            {busy ? "Finding…" : "Find booking"}
+            {busy ? t("Finding…") : t("Find booking")}
           </button>
           {error && <p className="text-sm text-red-300 sm:col-span-3">{error}</p>}
           <p className="text-xs text-ink-400 sm:col-span-3">
-            Don&apos;t have your reference?{" "}
-            <button type="button" onClick={() => openReceptionist("I need to move my appointment")} className="font-semibold underline" style={{ color: accent }}>
-              Ask the AI receptionist
+            {t("Don't have your reference?")}{" "}
+            <button type="button" onClick={() => openReceptionist(t("I need to move my appointment"))} className="font-semibold underline" style={{ color: accent }}>
+              {t("Ask the AI receptionist")}
             </button>{" "}
-            or call {c.phone}.
+            {t("or call {phone}.", { phone: c.phone })}
           </p>
         </form>
       )}
@@ -125,11 +127,11 @@ function Manage() {
       {found && !selected && (
         <div className="mt-8 grid gap-3">
           {found.map((a) => (
-            <button key={a.id} onClick={() => setSelected(a)} className="card flex items-center justify-between gap-3 p-5 text-left hover:border-white/20">
+            <button key={a.id} onClick={() => setSelected(a)} className="card flex items-center justify-between gap-3 p-5 text-start hover:border-white/20">
               <span>
-                <span className="block font-semibold">{a.serviceName}</span>
+                <span className="block font-semibold">{t(a.serviceName)}</span>
                 <span className="text-sm text-ink-400">
-                  {formatDate(a.date)} · {a.time} · {a.practitionerName}
+                  {formatDate(a.date, locale)} · {a.time} · {a.practitionerName}
                 </span>
               </span>
               <Icon name="arrow" className="h-5 w-5 text-ink-400" />
@@ -142,18 +144,18 @@ function Manage() {
         <div className="mt-8 space-y-5">
           <div className="card flex flex-wrap items-center justify-between gap-4 p-5">
             <div>
-              <p className="text-xs font-semibold tracking-wide text-ink-400 uppercase">Your appointment · {selected.reference}</p>
-              <p className="mt-1 text-lg font-semibold">{selected.serviceName}</p>
+              <p className="text-xs font-semibold tracking-wide text-ink-400 uppercase">{t("Your appointment")} · {selected.reference}</p>
+              <p className="mt-1 text-lg font-semibold">{t(selected.serviceName)}</p>
               <p className="text-sm text-ink-300">
-                {formatDate(selected.date)} at {selected.time} · {duration(selected.durationMinutes)} · with {selected.practitionerName}
+                {t("{date} at {time}", { date: formatDate(selected.date, locale), time: selected.time })} · {duration(selected.durationMinutes, locale)} · {t("with {name}", { name: selected.practitionerName })}
               </p>
             </div>
             <div className="flex gap-2">
               <button onClick={() => setMode("move")} className={`btn !py-2.5 ${mode === "move" ? "text-ink-950" : "btn-secondary"}`} style={mode === "move" ? { background: accent } : undefined}>
-                <Icon name="refresh" className="h-4 w-4" /> Move
+                <Icon name="refresh" className="h-4 w-4" /> {t("Move")}
               </button>
               <button onClick={() => setMode("cancel")} className={`btn !py-2.5 ${mode === "cancel" ? "bg-red-400 text-ink-950" : "btn-secondary"}`}>
-                <Icon name="close" className="h-4 w-4" /> Cancel
+                <Icon name="close" className="h-4 w-4" /> {t("Cancel")}
               </button>
             </div>
           </div>
@@ -161,13 +163,13 @@ function Manage() {
           {mode === "move" && (
             <div className="card space-y-5 p-5">
               <div>
-                <p className="label">New date</p>
+                <p className="label">{t("New date")}</p>
                 <div className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
                   {days.map((d) => {
                     const dt = new Date(`${d}T12:00:00`);
                     return (
                       <button key={d} disabled={!hoursForDate(c, d)} onClick={() => setDate(d)} className={`flex w-14 shrink-0 flex-col items-center rounded-2xl border py-2 transition disabled:opacity-30 ${date === d ? "border-transparent text-ink-950" : "border-white/10 hover:border-white/25"}`} style={date === d ? { background: accent } : undefined}>
-                        <span className="text-[10px] uppercase opacity-80">{dayShort(dt.getDay())}</span>
+                        <span className="text-[10px] uppercase opacity-80">{dayShort(dt.getDay(), locale)}</span>
                         <span className="font-semibold">{dt.getDate()}</span>
                       </button>
                     );
@@ -176,18 +178,18 @@ function Manage() {
               </div>
               {date && (
                 <div>
-                  <p className="label">New time · {formatDate(date)}</p>
+                  <p className="label">{t("New time")} · {formatDate(date, locale)}</p>
                   {!avail ? (
-                    <p className="text-sm text-ink-400">Finding free times…</p>
+                    <p className="text-sm text-ink-400">{t("Finding free times…")}</p>
                   ) : avail.slots.length === 0 ? (
-                    <p className="text-sm text-ink-400">No free times this day{avail.alternatives[0] ? ` – next free: ${formatDate(avail.alternatives[0].date)} from ${avail.alternatives[0].times[0]}` : ""}.</p>
+                    <p className="text-sm text-ink-400">{t("No free times this day")}{avail.alternatives[0] ? ` – ${t("next free: {date} from {time}", { date: formatDate(avail.alternatives[0].date, locale), time: avail.alternatives[0].times[0] })}` : ""}.</p>
                   ) : (
                     <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
                       {avail.slots.map((s) => (
                         <button
                           key={s.time}
                           disabled={busy}
-                          onClick={() => update({ date, time: s.time }, (a) => `Your ${a.serviceName.toLowerCase()} is now on ${formatDate(a.date)} at ${a.time} with ${a.practitionerName}.`)}
+                          onClick={() => update({ date, time: s.time }, (a) => t("Your {service} is now on {date} at {time} with {name}.", { service: t(a.serviceName), date: formatDate(a.date, locale), time: a.time, name: a.practitionerName }))}
                           className="rounded-xl border border-white/10 py-2.5 text-sm font-semibold tabular-nums transition hover:border-white/30"
                           title={s.practitioners.map((p) => p.name).join(", ")}
                         >
@@ -205,17 +207,17 @@ function Manage() {
             <div className="card space-y-4 p-5">
               {late && c.booking.lateCancellationFee > 0 ? (
                 <p className="rounded-2xl bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-                  It&apos;s less than {c.booking.cancellationHours} hours until your appointment, so the late cancellation fee of {dkk(c.booking.lateCancellationFee)} applies. Moving it instead is free.
+                  {t("It's less than {hours} hours until your appointment, so the late cancellation fee of {fee} applies. Moving it instead is free.", { hours: c.booking.cancellationHours, fee: dkk(c.booking.lateCancellationFee, locale) })}
                 </p>
               ) : (
-                <p className="text-sm text-ink-300">Cancellation is free. The time will be released for other clients.</p>
+                <p className="text-sm text-ink-300">{t("Cancellation is free. The time will be released for other clients.")}</p>
               )}
               <div className="flex flex-wrap gap-2">
-                <button disabled={busy} onClick={() => update({ status: "cancelled" }, (a) => `${a.serviceName} on ${formatDate(a.date)} at ${a.time} has been cancelled.`)} className="btn bg-red-400 text-ink-950">
-                  Yes, cancel it
+                <button disabled={busy} onClick={() => update({ status: "cancelled" }, (a) => t("{service} on {date} at {time} has been cancelled.", { service: t(a.serviceName), date: formatDate(a.date, locale), time: a.time }))} className="btn bg-red-400 text-ink-950">
+                  {t("Yes, cancel it")}
                 </button>
                 <button onClick={() => setMode("move")} className="btn-secondary">
-                  Move it instead
+                  {t("Move it instead")}
                 </button>
               </div>
             </div>

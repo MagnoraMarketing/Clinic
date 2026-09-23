@@ -12,3 +12,8 @@ export function I18nProvider({ locale, children }: { locale: Locale; children: R
 
 export const useI18n = () => useContext(Ctx);
 export const useT = () => useContext(Ctx).t;
+
+/** Translates a string prop inside a component that doesn't hold its own `t`. */
+export function T({ s, vars }: { s: string; vars?: Record<string, string | number> }) {
+  return <>{useT()(s, vars)}</>;
+}

@@ -1,10 +1,12 @@
 "use client";
 
+import { useT } from "@/components/i18n/I18nProvider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/site/Logo";
 
 export default function LoginPage() {
+  const t = useT();
   const router = useRouter();
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
@@ -17,14 +19,14 @@ export default function LoginPage() {
           setErr("");
           const res = await fetch("/api/admin/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw }) });
           if (res.ok) router.push("/admin");
-          else setErr(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Login failed");
+          else setErr(((await res.json().catch(() => ({}))) as { error?: string }).error ?? t("Login failed"));
         }}
       >
         <Logo sub={false} />
-        <h1 className="h-display text-2xl">Log in to the admin</h1>
-        <input type="password" className="input" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} autoFocus />
+        <h1 className="h-display text-2xl">{t("Log in to the admin")}</h1>
+        <input type="password" className="input" placeholder={t("Password")} value={pw} onChange={(e) => setPw(e.target.value)} autoFocus />
         {err && <p className="text-sm text-red-300">{err}</p>}
-        <button className="btn-primary w-full">Log in</button>
+        <button className="btn-primary w-full">{t("Log in")}</button>
       </form>
     </div>
   );

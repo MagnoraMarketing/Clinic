@@ -1,5 +1,6 @@
 "use client";
 
+import { T, useI18n } from "@/components/i18n/I18nProvider";
 import { useEffect, useState } from "react";
 import type { BookingRules, Clinic, FaqEntry, OpeningHours } from "@/lib/types";
 import { api } from "@/lib/client/api";
@@ -18,6 +19,7 @@ const FORWARDING = [
 ];
 
 export default function AiReceptionistPage() {
+  const { t, locale } = useI18n();
   const { clinic, catalog, refreshClinic } = useAdmin();
   const [f, setF] = useState<Clinic | null>(null);
   const [saved, setSaved] = useState("");
@@ -41,7 +43,7 @@ export default function AiReceptionistPage() {
         }),
       });
       await refreshClinic();
-      setSaved("Saved ✓ – the AI receptionist uses the new information on the next call and chat.");
+      setSaved(t("Saved ✓ – the AI receptionist uses the new information on the next call and chat."));
       setTimeout(() => setSaved(""), 4000);
     } catch (e) {
       setErr((e as Error).message);
@@ -60,10 +62,10 @@ export default function AiReceptionistPage() {
         actions={
           <>
             <button onClick={() => openReceptionist(undefined, { voice: true })} className="btn-secondary">
-              🎙️ Test voice
+              🎙️ {t("Test voice")}
             </button>
             <button onClick={save} className="btn-primary">
-              Save changes
+              {t("Save changes")}
             </button>
           </>
         }
@@ -73,18 +75,18 @@ export default function AiReceptionistPage() {
       <div className="grid gap-6 xl:grid-cols-2">
         <Box title="📞 Phone line & call forwarding" wide>
           <p className="text-sm text-ink-300">
-            Keep your existing clinic number. Forward calls to your AI number <strong className="text-white">{f.phone}</strong> with a code on your mobile or landline – the AI then answers, books and moves appointments, and transfers to staff when needed.
+            {t("Keep your existing clinic number. Forward calls to your AI number")} <strong className="text-white" dir="ltr">{f.phone}</strong> {t("with a code on your mobile or landline – the AI then answers, books and moves appointments, and transfers to staff when needed.")}
           </p>
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             {FORWARDING.map((x) => (
               <div key={x.code} className="rounded-2xl bg-ink-850 p-4">
-                <p className="text-xs font-semibold tracking-wide text-ink-400 uppercase">{x.label}</p>
+                <p className="text-xs font-semibold tracking-wide text-ink-400 uppercase">{t(x.label)}</p>
                 <p className="mt-1 font-mono text-lg text-sage-300">{x.code.replace("{n}", aiNumber)}</p>
-                <p className="mt-1 text-xs text-ink-400">{x.text}</p>
+                <p className="mt-1 text-xs text-ink-400">{t(x.text)}</p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-ink-400">GSM codes work on most Danish and European mobile networks. On a PBX/IP phone system, set the forwarding in your phone provider&apos;s portal.</p>
+          <p className="text-xs text-ink-400">{t("GSM codes work on most Danish and European mobile networks. On a PBX/IP phone system, set the forwarding in your phone provider's portal.")}</p>
         </Box>
 
         <Box title="Clinic">
@@ -103,11 +105,11 @@ export default function AiReceptionistPage() {
             const h = f.openingHours.find((x) => x.day === d)!;
             return (
               <div key={d} className="grid grid-cols-[90px_1fr_1fr_auto] items-center gap-2 text-sm">
-                <span>{dayName(d)}</span>
+                <span>{dayName(d, locale)}</span>
                 <input type="time" className="input !py-2" value={h.open} disabled={h.closed} onChange={(e) => setHours(d, { open: e.target.value })} />
                 <input type="time" className="input !py-2" value={h.close} disabled={h.closed} onChange={(e) => setHours(d, { close: e.target.value })} />
                 <label className="flex items-center gap-1.5 text-xs text-ink-300">
-                  <input type="checkbox" checked={!!h.closed} onChange={(e) => setHours(d, { closed: e.target.checked })} /> Closed
+                  <input type="checkbox" checked={!!h.closed} onChange={(e) => setHours(d, { closed: e.target.checked })} /> {t("Closed")}
                 </label>
               </div>
             );
@@ -116,7 +118,7 @@ export default function AiReceptionistPage() {
 
         <Box title="Booking & cancellation rules">
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={f.booking.enabled} onChange={(e) => rule("enabled", e.target.checked)} /> Accept bookings via AI & website
+            <input type="checkbox" checked={f.booking.enabled} onChange={(e) => rule("enabled", e.target.checked)} /> {t("Accept bookings via AI & website")}
           </label>
           <div className="grid gap-3 sm:grid-cols-3">
             <Num label="Start times every (min)" value={f.booking.slotMinutes} onChange={(v) => rule("slotMinutes", v)} />
@@ -127,18 +129,18 @@ export default function AiReceptionistPage() {
             <Num label="Late cancellation fee (DKK)" value={f.booking.lateCancellationFee} onChange={(v) => rule("lateCancellationFee", v)} />
           </div>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={f.booking.confirmNewClients} onChange={(e) => rule("confirmNewClients", e.target.checked)} /> New patients must be approved by the clinic
+            <input type="checkbox" checked={f.booking.confirmNewClients} onChange={(e) => rule("confirmNewClients", e.target.checked)} /> {t("New patients must be approved by the clinic")}
           </label>
           <Area label="Rules (the AI reads them to the client)" value={f.booking.rules} onChange={(v) => rule("rules", v)} />
         </Box>
 
         <Box title="Insurance, subsidy & referral">
-          <p className="text-sm text-ink-400">What the AI says when a client asks “Is it covered?” or “Do I need a referral?”.</p>
+          <p className="text-sm text-ink-400">{t("What the AI says when a client asks “Is it covered?” or “Do I need a referral?”.")}</p>
           <Area label="Insurance information" value={f.insurance ?? ""} onChange={(v) => up("insurance", v || undefined)} />
           <p className="text-sm text-ink-400">
-            Prices and durations come from{" "}
+            {t("Prices and durations come from")}{" "}
             <a href="/admin/services" className="font-semibold text-sage-300">
-              Services & prices →
+              {t("Services & prices →")}
             </a>
           </p>
         </Box>
@@ -146,16 +148,16 @@ export default function AiReceptionistPage() {
         <Box title="FAQ" wide>
           {f.faq.map((q, i) => (
             <div key={i} className="grid gap-2 rounded-2xl bg-ink-850 p-3 sm:grid-cols-[1fr_1.5fr_auto]">
-              <input className="input !py-2" value={q.question} onChange={(e) => setFaq(i, { question: e.target.value })} placeholder="Question" />
-              <input className="input !py-2" value={q.answer} onChange={(e) => setFaq(i, { answer: e.target.value })} placeholder="Answer" />
+              <input className="input !py-2" value={q.question} onChange={(e) => setFaq(i, { question: e.target.value })} placeholder={t("Question")} />
+              <input className="input !py-2" value={q.answer} onChange={(e) => setFaq(i, { answer: e.target.value })} placeholder={t("Answer")} />
               <button onClick={() => up("faq", f.faq.filter((_, idx) => idx !== i))} className="text-xs text-red-300">
-                Remove
+                {t("Remove")}
               </button>
-              <input className="input !py-2 sm:col-span-3" value={q.keywords.join(", ")} onChange={(e) => setFaq(i, { keywords: e.target.value.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean) })} placeholder="Keywords (comma separated)" />
+              <input className="input !py-2 sm:col-span-3" value={q.keywords.join(", ")} onChange={(e) => setFaq(i, { keywords: e.target.value.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean) })} placeholder={t("Keywords (comma separated)")} />
             </div>
           ))}
           <button onClick={() => up("faq", [...f.faq, { question: "", answer: "", keywords: [] }])} className="btn-secondary w-fit">
-            + Add question
+            + {t("Add question")}
           </button>
         </Box>
 
@@ -165,32 +167,32 @@ export default function AiReceptionistPage() {
             <In label="Voice agent ID" value={f.widget.voiceAgentId ?? ""} onChange={(v) => up("widget", { ...f.widget, voiceAgentId: v || undefined })} />
             <In label="Chat agent ID" value={f.widget.chatAgentId ?? ""} onChange={(v) => up("widget", { ...f.widget, chatAgentId: v || undefined })} />
             <label>
-              <span className="label">Position</span>
+              <span className="label">{t("Position")}</span>
               <select className="input" value={f.widget.position} onChange={(e) => up("widget", { ...f.widget, position: e.target.value as "bottom-right" })}>
-                <option value="bottom-right">Bottom right</option>
-                <option value="bottom-left">Bottom left</option>
+                <option value="bottom-right">{t("Bottom right")}</option>
+                <option value="bottom-left">{t("Bottom left")}</option>
               </select>
             </label>
             <label>
-              <span className="label">Theme</span>
+              <span className="label">{t("Theme")}</span>
               <select className="input" value={f.widget.theme} onChange={(e) => up("widget", { ...f.widget, theme: e.target.value as "dark" })}>
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
+                <option value="dark">{t("Dark")}</option>
+                <option value="light">{t("Light")}</option>
               </select>
             </label>
             <label>
-              <span className="label">Colour</span>
+              <span className="label">{t("Colour")}</span>
               <input type="color" className="input !h-12 !p-1" value={f.widget.accentColor} onChange={(e) => up("widget", { ...f.widget, accentColor: e.target.value })} />
             </label>
           </div>
           <Area label="Welcome message" value={f.widget.welcomeMessage} onChange={(v) => up("widget", { ...f.widget, welcomeMessage: v })} />
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={f.widget.enabled} onChange={(e) => up("widget", { ...f.widget, enabled: e.target.checked })} /> Widget active on the website
+            <input type="checkbox" checked={f.widget.enabled} onChange={(e) => up("widget", { ...f.widget, enabled: e.target.checked })} /> {t("Widget active on the website")}
           </label>
         </Box>
 
         <Box title="Embed on your own website">
-          <p className="text-sm text-ink-400">Paste into your existing website – WordPress, Wix, Squarespace, Shopify or your own design.</p>
+          <p className="text-sm text-ink-400">{t("Paste into your existing website – WordPress, Wix, Squarespace, Shopify or your own design.")}</p>
           <pre className="overflow-x-auto rounded-2xl bg-ink-950 p-4 text-xs text-emerald-200 ring-1 ring-white/8">{embed}</pre>
         </Box>
       </div>
@@ -202,26 +204,26 @@ export default function AiReceptionistPage() {
 function Box({ title, wide, children }: { title: string; wide?: boolean; children: React.ReactNode }) {
   return (
     <section className={`card space-y-3 p-5 ${wide ? "xl:col-span-2" : ""}`}>
-      <h2 className="font-semibold">{title}</h2>
+      <h2 className="font-semibold"><T s={title} /></h2>
       {children}
     </section>
   );
 }
 const In = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
   <label className="block">
-    <span className="label">{label}</span>
+    <span className="label"><T s={label} /></span>
     <input className="input" value={value} onChange={(e) => onChange(e.target.value)} />
   </label>
 );
 const Area = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
   <label className="block">
-    <span className="label">{label}</span>
+    <span className="label"><T s={label} /></span>
     <textarea rows={3} className="input" value={value} onChange={(e) => onChange(e.target.value)} />
   </label>
 );
 const Num = ({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) => (
   <label className="block">
-    <span className="label">{label}</span>
+    <span className="label"><T s={label} /></span>
     <input type="number" min={0} className="input" value={value} onChange={(e) => onChange(Number(e.target.value) || 0)} />
   </label>
 );

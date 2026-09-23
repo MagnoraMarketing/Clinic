@@ -1,10 +1,12 @@
 "use client";
 
+import { useT } from "@/components/i18n/I18nProvider";
 import { useEffect, useState } from "react";
 import type { Catalog, Clinic } from "@/lib/types";
 import { publicConfig } from "@/lib/config";
 import { Icon } from "@/components/ui/Icon";
 import { ReceptionistChat } from "./ReceptionistChat";
+import { VapiVoice } from "./VapiVoice";
 import { OPEN_EVENT, type OpenDetail } from "./events";
 
 const SCRIPT_ID = "aibooking-widget-script";
@@ -26,7 +28,13 @@ export function resolveAgentId(c: Clinic) {
 /** External widget = the real AIbooking Voice/Chat. Script (.js) or iframe URL. */
 export function useExternalWidget(c: Clinic) {
   const url = publicConfig.widgetUrl;
-  const mode: "script" | "iframe" | null = !url ? null : /\.m?js(\?|$)/.test(url) ? "script" : "iframe";
+  const mode: "vapi" | "script" | "iframe" | null = publicConfig.vapiPublicKey
+    ? "vapi"
+    : !url
+      ? null
+      : /\.m?js(\?|$)/.test(url)
+        ? "script"
+        : "iframe";
   return { url, mode, agentId: resolveAgentId(c) };
 }
 
@@ -50,6 +58,7 @@ export function iframeSrc(url: string, c: Clinic, agentId: string) {
  *  - Set to an empty string → built-in demo receptionist (chat + voice in the browser).
  */
 export function AIbookingWidget({ clinic, catalog }: { clinic: Clinic; catalog: Catalog }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [autoStart, setAutoStart] = useState<string | undefined>();
   const [autoVoice, setAutoVoice] = useState(false);
@@ -122,15 +131,15 @@ export function AIbookingWidget({ clinic, catalog }: { clinic: Clinic; catalog: 
   if (ext.mode === "script")
     return hint ? (
       <div role="status" className={`pointer-events-auto fixed bottom-24 z-[60] w-[min(18rem,calc(100vw-2rem))] animate-pop ${left ? "left-4 sm:left-6" : "right-4 sm:right-6"}`}>
-        <div className="relative rounded-2xl border border-white/10 bg-ink-900/95 p-4 pr-9 shadow-2xl shadow-black/50 backdrop-blur-xl">
-          <button onClick={() => setHint(false)} aria-label="Close" className="absolute top-3 right-3 text-ink-400 hover:text-white">
+        <div className="relative rounded-2xl border border-white/10 bg-ink-900/95 p-4 pe-9 shadow-2xl shadow-black/50 backdrop-blur-xl">
+          <button onClick={() => setHint(false)} aria-label={t("Close")} className="absolute top-3 right-3 text-ink-400 hover:text-white">
             <Icon name="close" className="h-4 w-4" />
           </button>
           <p className="flex items-center gap-2 text-[11px] font-bold tracking-wide uppercase" style={{ color: accent }}>
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: accent }} /> Live test
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: accent }} /> {t("Live test")}
           </p>
-          <p className="mt-1.5 text-sm font-semibold">Try the AI receptionist here</p>
-          <p className="mt-1 text-xs text-ink-300">Click the button below and talk to the receptionist – book, move or cancel an appointment, or ask about prices.</p>
+          <p className="mt-1.5 text-sm font-semibold">{t("Try the AI receptionist here")}</p>
+          <p className="mt-1 text-xs text-ink-300">{t("Click the button below and talk to the receptionist – book, move or cancel an appointment, or ask about prices.")}</p>
           <span className={`absolute -bottom-1.5 h-3 w-3 rotate-45 border-r border-b border-white/10 bg-ink-900 ${left ? "left-8" : "right-8"}`} />
         </div>
       </div>
@@ -144,12 +153,14 @@ export function AIbookingWidget({ clinic, catalog }: { clinic: Clinic; catalog: 
             <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-white/10 bg-ink-900 shadow-2xl">
               <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
                 <span className="text-sm font-semibold">{clinic.name} · AI receptionist</span>
-                <button onClick={() => setOpen(false)} aria-label="Close" className="text-ink-300 hover:text-white">
+                <button onClick={() => setOpen(false)} aria-label={t("Close")} className="text-ink-300 hover:text-white">
                   <Icon name="close" />
                 </button>
               </div>
               <iframe title="AIbooking" src={iframeSrc(ext.url, clinic, ext.agentId)} className="flex-1" allow="microphone; autoplay" />
             </div>
+          ) : ext.mode === "vapi" ? (
+            <VapiVoice key={session} clinic={clinic} autoStart={autoVoice || Boolean(autoStart)} onClose={() => setOpen(false)} className="h-full" />
           ) : (
             <ReceptionistChat key={session} clinic={clinic} catalog={catalog} autoStart={autoStart} autoVoice={autoVoice} onClose={() => setOpen(false)} className="h-full" />
           )}
@@ -157,14 +168,14 @@ export function AIbookingWidget({ clinic, catalog }: { clinic: Clinic; catalog: 
       )}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="group relative flex h-14 items-center gap-2 rounded-full pr-5 pl-4 font-semibold text-ink-950 shadow-2xl shadow-black/50 transition hover:scale-[1.03]"
+        className="group relative flex h-14 items-center gap-2 rounded-full pe-5 ps-4 font-semibold text-ink-950 shadow-2xl shadow-black/50 transition hover:scale-[1.03]"
         style={{ background: accent, ["--accent" as string]: accent }}
         aria-expanded={open}
-        aria-label="Open the AI receptionist"
+        aria-label={t("Open the AI receptionist")}
       >
         {!open && <span className="absolute inset-0 animate-pulse-ring rounded-full" />}
-        <Icon name={open ? "close" : "chat"} className="h-6 w-6" />
-        <span className="hidden text-sm sm:inline">{open ? "Close" : "Ask the AI receptionist"}</span>
+        <Icon name={open ? "close" : ext.mode === "vapi" ? "mic" : "chat"} className="h-6 w-6" />
+        <span className="hidden text-sm sm:inline">{open ? t("Close") : t("Ask the AI receptionist")}</span>
       </button>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n/I18nProvider";
 import type { Practitioner, Weekday } from "@/lib/types";
 import { api } from "@/lib/client/api";
 import { dayShort, initials } from "@/lib/format";
@@ -9,6 +10,7 @@ import { PageTitle } from "@/components/admin/AdminShell";
 const ORDER: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
 
 export default function TeamPage() {
+  const { t, locale } = useI18n();
   const { clinic, catalog, refreshCatalog } = useAdmin();
   if (!clinic || !catalog) return null;
 
@@ -31,14 +33,14 @@ export default function TeamPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{p.name}</p>
-                  <p className="text-xs text-ink-400">{p.title}</p>
-                  <p className="mt-1 text-sm text-ink-300">{p.bio}</p>
+                  <p className="text-xs text-ink-400">{t(p.title)}</p>
+                  <p className="mt-1 text-sm text-ink-300">{t(p.bio)}</p>
                 </div>
                 <label className="flex items-center gap-2 text-xs text-ink-300">
-                  <input type="checkbox" checked={p.active} onChange={(e) => save(p, { active: e.target.checked })} className="accent-[#3fcfab]" /> Active
+                  <input type="checkbox" checked={p.active} onChange={(e) => save(p, { active: e.target.checked })} className="accent-[#3fcfab]" /> {t("Active")}
                 </label>
               </div>
-              <p className="label mt-5">Working days</p>
+              <p className="label mt-5">{t("Working days")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {ORDER.map((d) => {
                   const on = p.workDays.includes(d);
@@ -51,13 +53,13 @@ export default function TeamPage() {
                       className={`w-12 rounded-xl border py-2 text-xs font-semibold transition disabled:opacity-25 ${on ? "border-transparent text-ink-950" : "border-white/10 text-ink-300 hover:border-white/25"}`}
                       style={on ? { background: p.color } : undefined}
                     >
-                      {dayShort(d)}
+                      {dayShort(d, locale)}
                     </button>
                   );
                 })}
               </div>
-              <p className="label mt-5">Performs</p>
-              <p className="text-sm text-ink-300">{services.map((s) => s.name).join(" · ")}</p>
+              <p className="label mt-5">{t("Performs")}</p>
+              <p className="text-sm text-ink-300">{services.map((s) => t(s.name)).join(" · ")}</p>
             </div>
           );
         })}
