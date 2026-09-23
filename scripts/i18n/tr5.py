@@ -1,0 +1,30 @@
+# Landing page section headings. (English, Spanish, German, Arabic)
+TR = [
+("A clinic website and the platform – then add AI minutes for the phone and voice widget when you're ready.", "Una web para tu clínica y la plataforma; después añade minutos de IA para el teléfono y el widget de voz cuando quieras.", "Eine Praxis-Website und die Plattform – dann KI-Minuten für Telefon und Sprach-Widget dazubuchen, wenn du bereit bist.", "موقع للعيادة والمنصة – ثم أضف دقائق الذكاء الاصطناعي للهاتف وأداة الصوت عندما تكون مستعدًا."),
+("AI receptionist · online", "Recepcionista IA · en línea", "KI-Rezeption · online", "موظف الاستقبال الذكي · متصل"),
+("AIbooking doesn't force your clients into a marketplace or someone else's app. It sits quietly in the background as the receptionist – with your name, your voice and your rules.", "AIbooking no obliga a tus clientes a usar un marketplace ni la app de otro. Trabaja discretamente en segundo plano como recepcionista, con tu nombre, tu voz y tus normas.", "AIbooking zwingt deine Kund:innen nicht auf einen Marktplatz oder in fremde Apps. Es arbeitet leise im Hintergrund als Rezeption – mit deinem Namen, deiner Stimme und deinen Regeln.", "لا يجبر AIbooking عملاءك على منصة وسيطة أو تطبيق آخر. بل يعمل بهدوء في الخلفية كموظف استقبال – باسمك وصوتك وقواعدك."),
+("API-first", "API primero", "API-first", "مبني على API"),
+("Benefits", "Ventajas", "Vorteile", "المزايا"),
+("Inbound calls & voice", "Llamadas entrantes y voz", "Eingehende Anrufe & Sprache", "المكالمات الواردة والصوت"),
+("Less time on the phone. More time with clients.", "Menos tiempo al teléfono. Más tiempo con los clientes.", "Weniger Zeit am Telefon. Mehr Zeit für Kund:innen.", "وقت أقل على الهاتف. ووقت أكثر مع العملاء."),
+("Most clinic calls are about the same four things. The AI receptionist handles all of them on the phone and in the voice widget – with your calendar, your prices and your rules.", "La mayoría de las llamadas a una clínica tratan de las mismas cuatro cosas. La recepcionista IA las gestiona todas por teléfono y en el widget de voz, con tu calendario, tus precios y tus normas.", "Die meisten Anrufe in einer Praxis drehen sich um dieselben vier Dinge. Die KI-Rezeption erledigt sie alle am Telefon und im Sprach-Widget – mit deinem Kalender, deinen Preisen und deinen Regeln.", "معظم مكالمات العيادات تدور حول الأمور الأربعة نفسها. يتولاها موظف الاستقبال الذكي كلها على الهاتف وفي أداة الصوت – بتقويمك وأسعارك وقواعدك."),
+("One receptionist – seven kinds of clinics", "Una recepcionista, siete tipos de clínica", "Eine Rezeption – sieben Arten von Praxen", "موظف استقبال واحد – سبعة أنواع من العيادات"),
+("See how the AI receptionist handles the calls that are typical for your kind of clinic.", "Mira cómo la recepcionista IA gestiona las llamadas típicas de tu tipo de clínica.", "Sieh, wie die KI-Rezeption die typischen Anrufe deiner Praxisart erledigt.", "شاهد كيف يتعامل موظف الاستقبال الذكي مع المكالمات المعتادة لنوع عيادتك."),
+("Simple pricing for clinics of every size", "Precios sencillos para clínicas de cualquier tamaño", "Einfache Preise für Praxen jeder Größe", "أسعار بسيطة للعيادات بكل أحجامها"),
+("Solutions", "Soluciones", "Lösungen", "الحلول"),
+("Start with the AI on your phone, add the voice widget to your website – or get a complete clinic website with booking. Everything works together.", "Empieza con la IA en tu teléfono, añade el widget de voz a tu web o consigue una web completa con reservas. Todo funciona en conjunto.", "Starte mit der KI am Telefon, ergänze das Sprach-Widget auf deiner Website – oder hol dir eine komplette Praxis-Website mit Buchung. Alles arbeitet zusammen.", "ابدأ بالذكاء الاصطناعي على هاتفك، وأضف أداة الصوت إلى موقعك – أو احصل على موقع عيادة كامل مع الحجز. كل شيء يعمل معًا."),
+("The four calls every clinic gets – handled by AI", "Las cuatro llamadas que recibe toda clínica, gestionadas por IA", "Die vier Anrufe, die jede Praxis bekommt – von der KI erledigt", "المكالمات الأربع التي تتلقاها كل عيادة – يتولاها الذكاء الاصطناعي"),
+("What we offer your clinic", "Lo que ofrecemos a tu clínica", "Was wir deiner Praxis bieten", "ما نقدمه لعيادتك"),
+("Works with the system you already have", "Funciona con el sistema que ya tienes", "Funktioniert mit deinem bestehenden System", "يعمل مع النظام الذي لديك"),
+("You don't have to switch booking or journal system to use AIbooking.", "No tienes que cambiar de sistema de reservas ni de historiales para usar AIbooking.", "Du musst dein Buchungs- oder Praxissystem nicht wechseln, um AIbooking zu nutzen.", "لا تحتاج إلى تغيير نظام الحجز أو السجلات لاستخدام AIbooking."),
+("Your clinic in the centre", "Tu clínica, la protagonista", "Deine Praxis im Mittelpunkt", "عيادتك في الواجهة"),
+("Your clinic. Your brand. Your calendar.", "Tu clínica. Tu marca. Tu calendario.", "Deine Praxis. Deine Marke. Dein Kalender.", "عيادتك. علامتك. تقويمك."),
+]
+TR += [
+("Add-ons", "Extras", "Add-ons", "الإضافات"),
+("All clinic types", "Todos los tipos de clínica", "Alle Praxistypen", "كل أنواع العيادات"),
+("Handled by AI ✓", "Gestionado por IA ✓", "Von der KI erledigt ✓", "تولاه الذكاء الاصطناعي ✓"),
+("Move or cancel", "Cambiar o cancelar", "Verschieben oder stornieren", "تغيير أو إلغاء"),
+("Platform · monthly", "Plataforma · mensual", "Plattform · monatlich", "المنصة · شهريًا"),
+("Start conversation", "Iniciar conversación", "Gespräch starten", "ابدأ المحادثة"),
+]

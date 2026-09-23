@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/components/i18n/I18nProvider";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import type { CallLine } from "@/lib/demo/catalog";
@@ -28,6 +29,7 @@ export function ConversationDemo({
   doneText?: string;
   doneNote?: string;
 } = {}) {
+  const t = useT();
   const [step, setStep] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,29 +74,29 @@ export function ConversationDemo({
           {!done && <span className="absolute inset-0 animate-pulse-ring rounded-full" />}
         </span>
         <div className="flex-1">
-          <p className="text-sm font-semibold">{title}</p>
-          <p className="text-xs text-ink-400">AI receptionist answering · 00:{String(Math.min(step * 6, 59)).padStart(2, "0")}</p>
+          <p className="text-sm font-semibold">{t(title)}</p>
+          <p className="text-xs text-ink-400">{t("AI receptionist answering")} · 00:{String(Math.min(step * 6, 59)).padStart(2, "0")}</p>
         </div>
         <button onClick={play} className="btn-ghost !px-3 !py-1.5 text-xs">
-          ↻ Replay
+          ↻ {t("Replay")}
         </button>
       </div>
       <div className="min-h-[340px] space-y-3">
         {SCRIPT.slice(0, step).map((m, i) => (
           <div key={i} className={`flex animate-pop ${m.who === "Caller" ? "justify-start" : "justify-end"}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.who === "Caller" ? "rounded-bl-md bg-ink-800" : "rounded-br-md bg-sage-400 text-ink-950"}`}>
-              <span className={`mb-0.5 block text-[10px] font-bold tracking-wider uppercase ${m.who === "Caller" ? "text-ink-400" : "text-ink-950/60"}`}>{m.who}</span>
-              {m.text}
+            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${m.who === "Caller" ? "rounded-es-md bg-ink-800" : "rounded-ee-md bg-sage-400 text-ink-950"}`}>
+              <span className={`mb-0.5 block text-[10px] font-bold tracking-wider uppercase ${m.who === "Caller" ? "text-ink-400" : "text-ink-950/60"}`}>{t(m.who)}</span>
+              {t(m.text)}
             </div>
           </div>
         ))}
         {done && (
           <div className="animate-pop rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4">
             <p className="flex items-center gap-2 font-semibold text-emerald-300">
-              <Icon name="check" className="h-5 w-5" /> {doneTitle}
+              <Icon name="check" className="h-5 w-5" /> {t(doneTitle)}
             </p>
-            <p className="mt-1 text-sm text-white/80">{doneText}</p>
-            <p className="mt-1 text-xs text-ink-400">{doneNote}</p>
+            <p className="mt-1 text-sm text-white/80">{t(doneText)}</p>
+            <p className="mt-1 text-xs text-ink-400">{t(doneNote)}</p>
           </div>
         )}
       </div>

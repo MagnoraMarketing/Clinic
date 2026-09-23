@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n/I18nProvider";
 import { useRef, useState } from "react";
 import type { Appointment, Call } from "@/lib/types";
 import { api, assistantApi } from "@/lib/client/api";
@@ -17,6 +18,7 @@ const firstName = (n: string) => (n.startsWith("Dr.") ? n.split(" ").slice(0, 3)
 type Scenario = "booking" | "rebooking" | "cancellation";
 
 export default function CallsPage() {
+  const { t, locale } = useI18n();
   const { clinic, catalog } = useAdmin();
   const { data, setData } = usePoll<Call[]>(clinic ? `/api/calls?clinicId=${clinic.id}` : null, 6000);
   const [open, setOpen] = useState<string | null>(null);
@@ -142,13 +144,13 @@ export default function CallsPage() {
         actions={
           <>
             <button onClick={() => simulate("booking")} disabled={!!live} className="btn-primary">
-              📞 Simulate booking call
+              📞 {t("Simulate booking call")}
             </button>
             <button onClick={() => simulate("rebooking")} disabled={!!live} className="btn-secondary">
-              🔄 Rebooking call
+              🔄 {t("Rebooking call")}
             </button>
             <button onClick={() => simulate("cancellation")} disabled={!!live} className="btn-secondary">
-              ✕ Cancellation call
+              ✕ {t("Cancellation call")}
             </button>
           </>
         }
@@ -156,14 +158,14 @@ export default function CallsPage() {
       {note && <p className="mb-4 rounded-2xl bg-amber-400/10 px-4 py-3 text-sm text-amber-200">{note}</p>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <Kpi label="Calls" value={String(calls.length)} hint={`${calls.length ? Math.round((answered / calls.length) * 100) : 100}% answered`} />
+        <Kpi label="Calls" value={String(calls.length)} hint={t("{n}% answered", { n: calls.length ? Math.round((answered / calls.length) * 100) : 100 })} />
         <Kpi label="Booked" value={String(count("booking"))} />
         <Kpi label="Moved" value={String(count("rebooking"))} />
         <Kpi label="Cancelled" value={String(count("cancellation"))} hint="slots freed for others" />
         <div className="card p-5">
-          <p className="text-xs font-semibold tracking-wide text-ink-400 uppercase">Minute package</p>
+          <p className="text-xs font-semibold tracking-wide text-ink-400 uppercase">{t("Minute package")}</p>
           <p className="h-display mt-2 text-3xl">
-            {usedMin} <span className="text-base text-ink-400">/ {PACKAGE_MIN} min</span>
+            {usedMin} <span className="text-base text-ink-400">/ {t("{n} min", { n: PACKAGE_MIN })}</span>
           </p>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/8">
             <div className="h-full rounded-full bg-sage-400" style={{ width: `${Math.min(100, (usedMin / PACKAGE_MIN) * 100)}%` }} />
@@ -175,14 +177,14 @@ export default function CallsPage() {
         <section className="mt-6 animate-pop overflow-hidden rounded-3xl border border-emerald-400/30 bg-gradient-to-br from-emerald-400/10 to-ink-900 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="flex items-center gap-2 font-semibold">
-              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400" /> Live call from {live.from} · {live.title}
+              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400" /> {t("Live call from {from}", { from: live.from })} · {t(live.title)}
             </p>
-            <span className="text-xs text-ink-400">The AI receptionist is speaking</span>
+            <span className="text-xs text-ink-400">{t("The AI receptionist is speaking")}</span>
           </div>
           <Waveform bars={60} className="my-4" />
           <div className="space-y-2">
             {live.lines.map((l, i) => (
-              <p key={i} className={`w-fit max-w-[85%] animate-pop rounded-2xl px-3.5 py-2 text-sm ${l.who === "ai" ? "ml-auto bg-sage-400 text-ink-950" : "bg-ink-800"}`}>
+              <p key={i} className={`w-fit max-w-[85%] animate-pop rounded-2xl px-3.5 py-2 text-sm ${l.who === "ai" ? "ms-auto bg-sage-400 text-ink-950" : "bg-ink-800"}`}>
                 {l.text}
               </p>
             ))}
@@ -193,35 +195,35 @@ export default function CallsPage() {
       <section className="card mt-6 divide-y divide-white/5">
         {calls.map((c) => (
           <div key={c.id}>
-            <button onClick={() => setOpen(open === c.id ? null : c.id)} className="flex w-full flex-wrap items-center gap-4 p-4 text-left hover:bg-white/[0.02]">
+            <button onClick={() => setOpen(open === c.id ? null : c.id)} className="flex w-full flex-wrap items-center gap-4 p-4 text-start hover:bg-white/[0.02]">
               <span className="grid h-10 w-10 place-items-center rounded-full bg-white/5 text-lg">{c.channel === "phone" ? "📞" : "🎙️"}</span>
               <div className="min-w-48 flex-1">
                 <p className="font-semibold">
-                  {c.from || "Unknown number"} <span className="text-xs font-normal text-ink-400">· {c.channel === "phone" ? "Phone" : "Voice widget"}</span>
+                  {c.from || t("Unknown number")} <span className="text-xs font-normal text-ink-400">· {c.channel === "phone" ? t("Phone") : t("Voice widget")}</span>
                 </p>
                 <p className="text-sm text-ink-300">{c.summary}</p>
               </div>
               <span className="text-xs text-ink-400 tabular-nums">
-                {formatDateTime(c.startedAt)} · {dur(c.durationSec)}
+                {formatDateTime(c.startedAt, locale)} · {dur(c.durationSec)}
               </span>
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${OUTCOME[c.outcome].cls}`}>
-                {OUTCOME[c.outcome].icon} {OUTCOME[c.outcome].label}
+                {OUTCOME[c.outcome].icon} {t(OUTCOME[c.outcome].label)}
               </span>
             </button>
             {open === c.id && (
               <div className="space-y-2 bg-ink-850 px-4 py-4 sm:px-16">
                 {c.transcript.map((l, i) => (
-                  <p key={i} className={`w-fit max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${l.who === "ai" ? "ml-auto bg-sage-400/90 text-ink-950" : "bg-ink-800"}`}>
-                    <span className="mb-0.5 block text-[10px] font-bold tracking-wider uppercase opacity-70">{l.who === "ai" ? "AI" : "Caller"}</span>
+                  <p key={i} className={`w-fit max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${l.who === "ai" ? "ms-auto bg-sage-400/90 text-ink-950" : "bg-ink-800"}`}>
+                    <span className="mb-0.5 block text-[10px] font-bold tracking-wider uppercase opacity-70">{l.who === "ai" ? t("AI") : t("Caller")}</span>
                     {l.text}
                   </p>
                 ))}
-                {c.transcript.length === 0 && <p className="text-sm text-ink-400">No transcript saved.</p>}
+                {c.transcript.length === 0 && <p className="text-sm text-ink-400">{t("No transcript saved.")}</p>}
               </div>
             )}
           </div>
         ))}
-        {calls.length === 0 && <p className="p-10 text-center text-ink-400">No calls yet. Simulate a call – or connect AIbooking Voice (webhook: call.completed).</p>}
+        {calls.length === 0 && <p className="p-10 text-center text-ink-400">{t("No calls yet. Simulate a call – or connect AIbooking Voice (webhook: call.completed).")}</p>}
       </section>
     </>
   );

@@ -1,5 +1,6 @@
 import type { Appointment, Catalog, Clinic, OpeningHours, Practitioner, Service, Slot } from "@/lib/types";
 import { dayShort } from "@/lib/format";
+import { translate, type Locale } from "@/lib/i18n";
 
 // Opening hours + the scheduling engine. Shared by the server (validation) and the
 // browser (booking page), so the AI, the website and the admin always agree on
@@ -47,18 +48,18 @@ export function isOpenNow(c: Clinic, now = new Date()): boolean {
 }
 
 /** Grouped opening hours: "Mon–Thu 09:00–18:00". Order Monday → Sunday. */
-export function groupedHours(c: Clinic): { label: string; value: string }[] {
+export function groupedHours(c: Clinic, l: Locale = "en"): { label: string; value: string }[] {
   const order = [1, 2, 3, 4, 5, 6, 0];
   const rows: { days: number[]; value: string }[] = [];
   for (const d of order) {
     const h = c.openingHours.find((o) => o.day === d);
-    const value = !h || h.closed ? "Closed" : `${h.open}–${h.close}`;
+    const value = !h || h.closed ? translate(l, "Closed") : `${h.open}–${h.close}`;
     const prev = rows[rows.length - 1];
     if (prev && prev.value === value) prev.days.push(d);
     else rows.push({ days: [d], value });
   }
   return rows.map(({ days, value }) => ({
-    label: days.length > 1 ? `${dayShort(days[0])}–${dayShort(days[days.length - 1])}` : dayShort(days[0]),
+    label: days.length > 1 ? `${dayShort(days[0], l)}–${dayShort(days[days.length - 1], l)}` : dayShort(days[0], l),
     value,
   }));
 }

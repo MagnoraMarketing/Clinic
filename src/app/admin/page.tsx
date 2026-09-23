@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n/I18nProvider";
 import Link from "next/link";
 import type { Appointment, Call } from "@/lib/types";
 import { dkk, timeAgo } from "@/lib/format";
@@ -9,6 +10,7 @@ import { Kpi, PageTitle } from "@/components/admin/AdminShell";
 import { OUTCOME, SOURCE, STATUS } from "@/components/admin/labels";
 
 export default function AdminDashboard() {
+  const { t, locale } = useI18n();
   const { clinic, catalog } = useAdmin();
   const cid = clinic?.id;
   const today = clinicNow().date;
@@ -28,27 +30,27 @@ export default function AdminDashboard() {
   return (
     <>
       <PageTitle
-        title={`Good day, ${clinic.name} 👋`}
+        title={`${t("Good day, {name}", { name: clinic.name })} 👋`}
         text="Today's appointments, the AI receptionist's calls, and everything it booked, moved or cancelled."
         actions={
           <>
             <Link href="/admin/calls" className="btn-secondary">
-              📞 Calls
+              📞 {t("Calls")}
             </Link>
             <Link href="/admin/appointments" className="btn-primary">
-              Open today&apos;s calendar
+              {t("Open today's calendar")}
             </Link>
           </>
         }
       />
       {pending.length > 0 && (
         <Link href="/admin/appointments" className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
-          <span>🆕 {pending.length} new-patient request{pending.length > 1 ? "s" : ""} waiting for your approval</span>
-          <span className="font-semibold">Review →</span>
+          <span>🆕 {t(pending.length > 1 ? "{n} new-patient requests waiting for your approval" : "{n} new-patient request waiting for your approval", { n: pending.length })}</span>
+          <span className="font-semibold">{t("Review →")}</span>
         </Link>
       )}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="Appointments today" value={String(todays.length)} hint={`${dkk(revenue)} booked value`} />
+        <Kpi label="Appointments today" value={String(todays.length)} hint={t("{value} booked value", { value: dkk(revenue, locale) })} />
         <Kpi label="Upcoming" value={String(active.length)} hint="today and later" />
         <Kpi label="Booked by AI" value={`${appts.length ? Math.round((ai.length / appts.length) * 100) : 0}%`} hint="phone, voice widget and chat" accent />
         <Kpi label="Moved / cancelled by AI" value={`${moved.length} / ${appts.filter((a) => a.status === "cancelled").length}`} hint="without staff on the phone" />
@@ -57,20 +59,20 @@ export default function AdminDashboard() {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <section className="card p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold">Today</h2>
+            <h2 className="font-semibold">{t("Today")}</h2>
             <Link href="/admin/appointments" className="text-xs font-semibold text-sage-300">
-              Calendar →
+              {t("Calendar →")}
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
-              <thead className="text-left text-xs text-ink-400">
+              <thead className="text-start text-xs text-ink-400">
                 <tr>
-                  <th className="pb-2 font-medium">Time</th>
-                  <th className="pb-2 font-medium">Client</th>
-                  <th className="pb-2 font-medium">Treatment</th>
-                  <th className="pb-2 font-medium">With</th>
-                  <th className="pb-2 font-medium">Status</th>
+                  <th className="pb-2 font-medium">{t("Time")}</th>
+                  <th className="pb-2 font-medium">{t("Client")}</th>
+                  <th className="pb-2 font-medium">{t("Treatment")}</th>
+                  <th className="pb-2 font-medium">{t("With")}</th>
+                  <th className="pb-2 font-medium">{t("Status")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -84,17 +86,17 @@ export default function AdminDashboard() {
                         <td>
                           {a.customer.name}
                           <span className="block text-xs text-ink-400">
-                            {SOURCE[a.source].icon} {SOURCE[a.source].label}
-                            {a.changes.length ? " · 🔄 moved" : ""}
+                            {SOURCE[a.source].icon} {t(SOURCE[a.source].label)}
+                            {a.changes.length ? ` · 🔄 ${t("moved")}` : ""}
                           </span>
                         </td>
-                        <td>{a.serviceName}</td>
+                        <td>{t(a.serviceName)}</td>
                         <td>
-                          <span className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ background: p?.color ?? "#888" }} />
+                          <span className="me-1.5 inline-block h-2 w-2 rounded-full" style={{ background: p?.color ?? "#888" }} />
                           {a.practitionerName.replace(/^Dr\.\s+/, "Dr. ").split(" ").slice(0, a.practitionerName.startsWith("Dr.") ? 3 : 1).join(" ")}
                         </td>
                         <td>
-                          <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS[a.status].cls}`}>{STATUS[a.status].label}</span>
+                          <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS[a.status].cls}`}>{t(STATUS[a.status].label)}</span>
                         </td>
                       </tr>
                     );
@@ -102,7 +104,7 @@ export default function AdminDashboard() {
                 {!appts.some((a) => a.date === today) && (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-ink-400">
-                      No appointments today
+                      {t("No appointments today")}
                     </td>
                   </tr>
                 )}
@@ -114,9 +116,9 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <section className="card p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-semibold">Latest calls</h2>
+              <h2 className="font-semibold">{t("Latest calls")}</h2>
               <Link href="/admin/calls" className="text-xs font-semibold text-sage-300">
-                All calls →
+                {t("All calls →")}
               </Link>
             </div>
             <ul className="space-y-2 text-sm">
@@ -125,23 +127,23 @@ export default function AdminDashboard() {
                   <span className="min-w-0">
                     <span className="block truncate">{c.summary}</span>
                     <span className="text-xs text-ink-400">
-                      {c.channel === "phone" ? "📞" : "🎙️"} {timeAgo(c.startedAt)}
+                      {c.channel === "phone" ? "📞" : "🎙️"} {timeAgo(c.startedAt, locale)}
                     </span>
                   </span>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${OUTCOME[c.outcome].cls}`}>{OUTCOME[c.outcome].label}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${OUTCOME[c.outcome].cls}`}>{t(OUTCOME[c.outcome].label)}</span>
                 </li>
               ))}
-              {calls.length === 0 && <li className="text-ink-400">No calls yet</li>}
+              {calls.length === 0 && <li className="text-ink-400">{t("No calls yet")}</li>}
             </ul>
           </section>
           <section className="card p-5">
-            <h2 className="mb-4 font-semibold">Bookings per channel</h2>
+            <h2 className="mb-4 font-semibold">{t("Bookings per channel")}</h2>
             <div className="space-y-3">
               {bySource.map(([src, n]) => (
                 <div key={src}>
                   <div className="flex justify-between text-sm">
                     <span>
-                      {SOURCE[src as keyof typeof SOURCE].icon} {SOURCE[src as keyof typeof SOURCE].label}
+                      {SOURCE[src as keyof typeof SOURCE].icon} {t(SOURCE[src as keyof typeof SOURCE].label)}
                     </span>
                     <span className="text-ink-400">{n}</span>
                   </div>

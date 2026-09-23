@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n/I18nProvider";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -20,6 +21,7 @@ export default function BookPage() {
 }
 
 function BookFlow() {
+  const { t, locale } = useI18n();
   const { clinic: c, catalog } = useClinic();
   const params = useSearchParams();
   const accent = c.accentColor;
@@ -73,23 +75,23 @@ function BookFlow() {
           <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-400/15 text-emerald-300">
             <Icon name="check" className="h-8 w-8" />
           </span>
-          <h1 className="h-display mt-4 text-3xl">{booked.status === "pending" ? "Request received" : "You're booked!"}</h1>
+          <h1 className="h-display mt-4 text-3xl">{booked.status === "pending" ? t("Request received") : t("You're booked!")}</h1>
           <p className="mt-3 text-ink-300">
-            {booked.serviceName} with {booked.practitionerName}
+            {t("{service} with {name}", { service: t(booked.serviceName), name: booked.practitionerName })}
             <br />
-            {formatDate(booked.date)} at {booked.time} · {duration(booked.durationMinutes)}
+            {t("{date} at {time}", { date: formatDate(booked.date, locale), time: booked.time })} · {duration(booked.durationMinutes, locale)}
           </p>
           <p className="mt-1 text-sm text-ink-400">
-            Reference: <strong className="text-white">{booked.reference}</strong>
+            {t("Reference:")} <strong className="text-white">{booked.reference}</strong>
           </p>
-          {booked.status === "pending" && <p className="mt-4 rounded-2xl bg-amber-400/10 px-4 py-3 text-sm text-amber-200">New patients are confirmed personally by the clinic – usually within one working day.</p>}
-          <p className="mt-6 text-xs text-ink-400">Need to move or cancel? Use your reference on the “Manage booking” page – or just tell the AI receptionist.</p>
+          {booked.status === "pending" && <p className="mt-4 rounded-2xl bg-amber-400/10 px-4 py-3 text-sm text-amber-200">{t("New patients are confirmed personally by the clinic – usually within one working day.")}</p>}
+          <p className="mt-6 text-xs text-ink-400">{t("Need to move or cancel? Use your reference on the “Manage booking” page – or just tell the AI receptionist.")}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link href={`/demo/${c.slug}/manage?ref=${booked.reference}`} className="btn-secondary">
-              Manage booking
+              {t("Manage booking")}
             </Link>
             <Link href="/admin/appointments" target="_blank" className="btn-ghost">
-              See it in the admin →
+              {t("See it in the admin →")}
             </Link>
           </div>
         </div>
@@ -122,7 +124,7 @@ function BookFlow() {
     }
   };
 
-  const chip = (active: boolean) => `rounded-2xl border px-4 py-3 text-left text-sm transition ${active ? "border-transparent text-ink-950" : "border-white/10 hover:border-white/25"}`;
+  const chip = (active: boolean) => `rounded-2xl border px-4 py-3 text-start text-sm transition ${active ? "border-transparent text-ink-950" : "border-white/10 hover:border-white/25"}`;
 
   return (
     <div className="container-x py-10 sm:py-14">
@@ -131,11 +133,11 @@ function BookFlow() {
           <p className="text-sm font-semibold tracking-wider uppercase" style={{ color: accent }}>
             {c.name}
           </p>
-          <h1 className="h-display mt-1 text-4xl sm:text-5xl">Book an appointment</h1>
-          <p className="mt-2 max-w-lg text-ink-400">{c.booking.rules}</p>
+          <h1 className="h-display mt-1 text-4xl sm:text-5xl">{t("Book an appointment")}</h1>
+          <p className="mt-2 max-w-lg text-ink-400">{t(c.booking.rules)}</p>
         </div>
-        <button onClick={() => openReceptionist(service ? `I'd like to book ${service.name}` : "I'd like to book an appointment")} className="btn-secondary">
-          <Icon name="sparkles" className="h-4 w-4" /> Let the AI book for you
+        <button onClick={() => openReceptionist(service ? `I'd like to book ${service.name}` : t("I'd like to book an appointment"))} className="btn-secondary">
+          <Icon name="sparkles" className="h-4 w-4" /> {t("Let the AI book for you")}
         </button>
       </div>
 
@@ -143,18 +145,18 @@ function BookFlow() {
         <div className="card min-w-0 space-y-8 p-5 sm:p-7">
           {/* 1. Treatment */}
           <div>
-            <p className="label">1 · Treatment</p>
+            <p className="label">{t("1 · Treatment")}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {visibleServices.map((s) => (
                 <button type="button" key={s.id} onClick={() => setServiceId(s.id)} className={chip(serviceId === s.id)} style={serviceId === s.id ? { background: accent } : undefined}>
                   <span className="flex items-center justify-between gap-2 font-semibold">
                     <span>
-                      {s.emoji} {s.name}
+                      {s.emoji} {t(s.name)}
                     </span>
                   </span>
                   <span className={`text-xs ${serviceId === s.id ? "text-ink-950/75" : "text-ink-400"}`}>
-                    {duration(s.durationMinutes)} · {priceLabel(s)}
-                    {s.newClientsOnly ? " · new clients" : ""}
+                    {duration(s.durationMinutes, locale)} · {priceLabel(s, locale)}
+                    {s.newClientsOnly ? ` · ${t("new clients")}` : ""}
                   </span>
                 </button>
               ))}
@@ -165,10 +167,10 @@ function BookFlow() {
             <>
               {/* 2. Practitioner */}
               <div>
-                <p className="label">2 · Practitioner</p>
+                <p className="label">{t("2 · Practitioner")}</p>
                 <div className="flex flex-wrap gap-2">
                   <button type="button" onClick={() => setPractitionerId("")} className={`${chip(!practitionerId)} !py-2.5`} style={!practitionerId ? { background: accent } : undefined}>
-                    ✨ First available
+                    ✨ {t("First available")}
                   </button>
                   {staff.map((p) => (
                     <button type="button" key={p.id} onClick={() => setPractitionerId(p.id)} className={`${chip(practitionerId === p.id)} flex items-center gap-2 !py-2.5`} style={practitionerId === p.id ? { background: accent } : undefined}>
@@ -183,16 +185,16 @@ function BookFlow() {
 
               {/* 3. Date */}
               <div>
-                <p className="label">3 · Date</p>
+                <p className="label">{t("3 · Date")}</p>
                 <div className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
                   {days.map((d) => {
                     const dt = new Date(`${d}T12:00:00`);
                     const closed = !hoursForDate(c, d);
                     return (
                       <button type="button" key={d} disabled={closed} onClick={() => setDate(d)} className={`flex w-16 shrink-0 flex-col items-center rounded-2xl border py-2.5 transition disabled:opacity-30 ${date === d ? "border-transparent text-ink-950" : "border-white/10 hover:border-white/25"}`} style={date === d ? { background: accent } : undefined}>
-                        <span className="text-[11px] uppercase opacity-80">{dayShort(dt.getDay())}</span>
+                        <span className="text-[11px] uppercase opacity-80">{dayShort(dt.getDay(), locale)}</span>
                         <span className="text-lg font-semibold">{dt.getDate()}</span>
-                        <span className="text-[10px] opacity-70">{monthShort(dt)}</span>
+                        <span className="text-[10px] opacity-70">{monthShort(dt, locale)}</span>
                       </button>
                     );
                   })}
@@ -202,18 +204,18 @@ function BookFlow() {
               {/* 4. Time */}
               <div>
                 <p className="label">
-                  4 · Time {date && <span className="text-ink-400 normal-case">· {formatDate(date)}</span>}
+                  {t("4 · Time")} {date && <span className="text-ink-400 normal-case">· {formatDate(date, locale)}</span>}
                 </p>
                 {avail === null ? (
-                  <p className="text-sm text-ink-400">Finding free times…</p>
+                  <p className="text-sm text-ink-400">{t("Finding free times…")}</p>
                 ) : avail.slots.length === 0 ? (
                   <div className="text-sm text-ink-400">
-                    <p>No free times this day.</p>
+                    <p>{t("No free times this day.")}</p>
                     {avail.alternatives.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {avail.alternatives.map((a) => (
                           <button type="button" key={a.date} onClick={() => setDate(a.date)} className="chip hover:text-white">
-                            {formatDate(a.date)} · from {a.times[0]}
+                            {formatDate(a.date, locale)} · {t("from {time}", { time: a.times[0] })}
                           </button>
                         ))}
                       </div>
@@ -232,22 +234,22 @@ function BookFlow() {
 
               {/* 5. Details */}
               <div className="grid gap-4 sm:grid-cols-2">
-                <p className="label sm:col-span-2 !mb-0">5 · Your details</p>
+                <p className="label sm:col-span-2 !mb-0">{t("5 · Your details")}</p>
                 <label>
-                  <span className="label">Name *</span>
+                  <span className="label">{t("Name *")}</span>
                   <input required minLength={2} className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" />
                 </label>
                 <label>
-                  <span className="label">Phone *</span>
+                  <span className="label">{t("Phone *")}</span>
                   <input required type="tel" inputMode="tel" className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} autoComplete="tel" />
                 </label>
                 <label className="sm:col-span-2">
-                  <span className="label">Email</span>
+                  <span className="label">{t("Email")}</span>
                   <input type="email" className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" />
                 </label>
                 <label className="sm:col-span-2">
-                  <span className="label">Anything we should know?</span>
-                  <textarea rows={3} className="input" value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} placeholder="E.g. injuries, pregnancy, allergies or if you're nervous" />
+                  <span className="label">{t("Anything we should know?")}</span>
+                  <textarea rows={3} className="input" value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} placeholder={t("E.g. injuries, pregnancy, allergies or if you're nervous")} />
                 </label>
               </div>
             </>
@@ -255,36 +257,36 @@ function BookFlow() {
         </div>
 
         <aside className="card h-fit space-y-4 p-5 lg:sticky lg:top-24">
-          <h2 className="font-semibold">Your appointment</h2>
+          <h2 className="font-semibold">{t("Your appointment")}</h2>
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">Treatment</dt>
-              <dd className="text-right">{service?.name ?? "Choose a treatment"}</dd>
+              <dt className="text-ink-400">{t("Treatment")}</dt>
+              <dd className="text-end">{service ? t(service.name) : t("Choose a treatment")}</dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">Date</dt>
-              <dd className="text-right">{date ? formatDate(date) : "–"}</dd>
+              <dt className="text-ink-400">{t("Date")}</dt>
+              <dd className="text-end">{date ? formatDate(date, locale) : "–"}</dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">Time</dt>
-              <dd>{time || "Choose a time"}</dd>
+              <dt className="text-ink-400">{t("Time")}</dt>
+              <dd>{time || t("Choose a time")}</dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-ink-400">With</dt>
-              <dd>{assigned?.name ?? (practitionerId ? catalog.practitioners.find((p) => p.id === practitionerId)?.name : "First available")}</dd>
+              <dt className="text-ink-400">{t("With")}</dt>
+              <dd>{assigned?.name ?? (practitionerId ? catalog.practitioners.find((p) => p.id === practitionerId)?.name : t("First available"))}</dd>
             </div>
             {service && (
               <div className="flex justify-between gap-3 border-t border-white/8 pt-2 font-semibold">
-                <dt>Price</dt>
-                <dd>{priceLabel(service)}</dd>
+                <dt>{t("Price")}</dt>
+                <dd>{priceLabel(service, locale)}</dd>
               </div>
             )}
           </dl>
           {error && <p className="rounded-2xl bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>}
           <button disabled={!time || sending} className="btn w-full text-ink-950" style={{ background: accent }}>
-            {sending ? "Booking…" : "Confirm booking"}
+            {sending ? t("Booking…") : t("Confirm booking")}
           </button>
-          <p className="text-xs text-ink-400">You pay at the clinic. {c.booking.lateCancellationFee ? `Free cancellation up to ${c.booking.cancellationHours} h before.` : ""}</p>
+          <p className="text-xs text-ink-400">{t("You pay at the clinic.")} {c.booking.lateCancellationFee ? t("Free cancellation up to {h} h before.", { h: c.booking.cancellationHours }) : ""}</p>
         </aside>
       </form>
     </div>

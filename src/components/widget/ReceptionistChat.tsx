@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n, useT } from "@/components/i18n/I18nProvider";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Catalog, Clinic } from "@/lib/types";
@@ -29,6 +30,7 @@ export interface ReceptionistChatProps {
  * through the real API and land in the admin calendar.
  */
 export function ReceptionistChat({ clinic, catalog, autoStart, autoVoice, onClose, className = "" }: ReceptionistChatProps) {
+  const t = useT();
   const [messages, setMessages] = useState<AssistantMessage[]>(() => [{ id: uid(), role: "assistant", text: clinic.widget.welcomeMessage, quickReplies: mainMenu() }]);
   const [state, setState] = useState<AssistantState>(initialState);
   const [input, setInput] = useState("");
@@ -127,28 +129,28 @@ export function ReceptionistChat({ clinic, catalog, autoStart, autoVoice, onClos
       <div className="relative flex items-center gap-3 border-b border-white/8 bg-gradient-to-r from-ink-850 to-ink-900 px-4 py-3.5">
         <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-lg" style={{ background: `color-mix(in oklab, ${accent} 22%, transparent)` }}>
           {clinic.emoji}
-          <span className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-ink-900 bg-emerald-400" />
+          <span className="absolute -end-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-ink-900 bg-emerald-400" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{clinic.name}</p>
-          <p className="truncate text-xs text-ink-400">AI receptionist · answers instantly</p>
+          <p className="truncate text-xs text-ink-400">{t("AI receptionist · answers instantly")}</p>
         </div>
         {speech.supported && (
           <button
             onClick={toggleVoice}
             className={`grid h-9 w-9 place-items-center rounded-full border transition ${voiceMode ? "border-transparent text-ink-950" : "border-white/10 text-ink-300 hover:text-white"}`}
             style={voiceMode ? { background: accent } : undefined}
-            title={voiceMode ? "Stop voice" : "Talk to the AI"}
-            aria-label={voiceMode ? "Stop voice" : "Talk to the AI"}
+            title={voiceMode ? t("Stop voice") : t("Talk to the AI")}
+            aria-label={voiceMode ? t("Stop voice") : t("Talk to the AI")}
           >
             <Icon name="mic" className="h-4.5 w-4.5" />
           </button>
         )}
-        <a href={telHref(clinic.phone)} className="grid h-9 w-9 place-items-center rounded-full border border-white/10 text-ink-300 transition hover:text-white" title="Call" aria-label="Call the clinic">
+        <a href={telHref(clinic.phone)} className="grid h-9 w-9 place-items-center rounded-full border border-white/10 text-ink-300 transition hover:text-white" title={t("Call")} aria-label={t("Call the clinic")}>
           <Icon name="phone" className="h-4 w-4" />
         </a>
         {onClose && (
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-ink-300 hover:bg-white/5 hover:text-white" aria-label="Close">
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-ink-300 hover:bg-white/5 hover:text-white" aria-label={t("Close")}>
             <Icon name="close" className="h-5 w-5" />
           </button>
         )}
@@ -160,7 +162,7 @@ export function ReceptionistChat({ clinic, catalog, autoStart, autoVoice, onClos
           <div key={m.id} className={`flex animate-pop ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className="max-w-[88%] space-y-2">
               <div
-                className={`rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed ${m.role === "user" ? "rounded-br-md text-ink-950" : "rounded-bl-md bg-ink-800 text-white/90"}`}
+                className={`rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed ${m.role === "user" ? "rounded-ee-md text-ink-950" : "rounded-es-md bg-ink-800 text-white/90"}`}
                 style={m.role === "user" ? { background: accent } : undefined}
               >
                 {m.text}
@@ -170,13 +172,13 @@ export function ReceptionistChat({ clinic, catalog, autoStart, autoVoice, onClos
           </div>
         ))}
         {typing && (
-          <div className="flex w-fit gap-1 rounded-2xl rounded-bl-md bg-ink-800 px-4 py-3" aria-label="Typing">
+          <div className="flex w-fit gap-1 rounded-2xl rounded-es-md bg-ink-800 px-4 py-3" aria-label={t("Typing")}>
             {[0, 1, 2].map((i) => (
               <span key={i} className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-400" style={{ animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
         )}
-        {speech.interim && <div className="ml-auto w-fit max-w-[80%] rounded-2xl px-3.5 py-2 text-sm text-white/60 italic ring-1 ring-white/10">{speech.interim}…</div>}
+        {speech.interim && <div className="ms-auto w-fit max-w-[80%] rounded-2xl px-3.5 py-2 text-sm text-white/60 italic ring-1 ring-white/10">{speech.interim}…</div>}
         {!typing && last?.quickReplies && last.quickReplies.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-1">
             {last.quickReplies.map((q) => (
@@ -195,13 +197,13 @@ export function ReceptionistChat({ clinic, catalog, autoStart, autoVoice, onClos
       {/* Input */}
       {voiceMode ? (
         <div className="flex items-center justify-between gap-3 border-t border-white/8 px-4 py-3.5">
-          <button onClick={() => (speech.listening ? speech.stop() : speech.start())} className="relative grid h-12 w-12 place-items-center rounded-full text-ink-950" style={{ background: accent }} aria-label={speech.listening ? "Stop listening" : "Talk"}>
+          <button onClick={() => (speech.listening ? speech.stop() : speech.start())} className="relative grid h-12 w-12 place-items-center rounded-full text-ink-950" style={{ background: accent }} aria-label={speech.listening ? t("Stop listening") : t("Talk")}>
             {speech.listening && <span className="absolute inset-0 animate-pulse-ring rounded-full" />}
             <Icon name="mic" className="h-5 w-5" />
           </button>
-          <p className="flex-1 text-sm text-ink-300">{speech.listening ? "I'm listening… just speak naturally" : "Tap the microphone to talk"}</p>
+          <p className="flex-1 text-sm text-ink-300">{speech.listening ? t("I'm listening… just speak naturally") : t("Tap the microphone to talk")}</p>
           <button onClick={toggleVoice} className="text-xs font-semibold text-ink-400 hover:text-white">
-            Type instead
+            {t("Type instead")}
           </button>
         </div>
       ) : (
@@ -215,17 +217,17 @@ export function ReceptionistChat({ clinic, catalog, autoStart, autoVoice, onClos
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="e.g. “Can I move my appointment to Friday?”"
+            placeholder={t("e.g. “Can I move my appointment to Friday?”")}
             className="min-w-0 flex-1 rounded-full bg-ink-850 px-4 py-2.5 text-[14px] outline-none placeholder:text-ink-400 focus:ring-2 focus:ring-[color-mix(in_oklab,var(--accent)_40%,transparent)]"
-            aria-label="Message to the AI receptionist"
+            aria-label={t("Message to the AI receptionist")}
           />
-          <button type="submit" disabled={!input.trim()} className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-950 transition disabled:opacity-40" style={{ background: accent }} aria-label="Send">
+          <button type="submit" disabled={!input.trim()} className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-950 transition disabled:opacity-40" style={{ background: accent }} aria-label={t("Send")}>
             <Icon name="send" className="h-4.5 w-4.5" />
           </button>
         </form>
       )}
       <p className="border-t border-white/5 bg-ink-950/60 py-1.5 text-center text-[10.5px] tracking-wide text-ink-400">
-        Powered by <span className="font-semibold text-white/70">AIbooking</span> · Demo
+        {t("Powered by")} <span className="font-semibold text-white/70">AIbooking</span> · {t("Demo")}
       </p>
     </div>
   );
@@ -241,13 +243,14 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 function Card({ card, accent, clinic }: { card: AssistantCard; accent: string; clinic: Clinic }) {
+  const { t, locale } = useI18n();
   if (card.type === "summary")
     return (
       <div className="rounded-2xl border border-white/10 bg-ink-850 p-3 text-[13px]">
         {card.lines.map((l, i) => (
           <div key={i} className="flex justify-between gap-3 py-1">
             <span className="text-ink-300">{l.label}</span>
-            <span className="text-right font-medium text-white/90">{l.value}</span>
+            <span className="text-end font-medium text-white/90">{l.value}</span>
           </div>
         ))}
         {card.note && <p className="mt-1.5 border-t border-white/10 pt-2 text-[11.5px] text-ink-400">{card.note}</p>}
@@ -259,11 +262,11 @@ function Card({ card, accent, clinic }: { card: AssistantCard; accent: string; c
         {card.services.map((s) => (
           <div key={s.id} className="flex items-center justify-between gap-3 px-3 py-2">
             <span className="min-w-0">
-              <span className="mr-1.5">{s.emoji}</span>
+              <span className="me-1.5">{s.emoji}</span>
               <span className="text-white/90">{s.name}</span>
-              <span className="block pl-6 text-[11px] text-ink-400">{duration(s.durationMinutes)}</span>
+              <span className="block ps-6 text-[11px] text-ink-400">{duration(s.durationMinutes, locale)}</span>
             </span>
-            <span className="shrink-0 font-semibold tabular-nums">{priceLabel(s)}</span>
+            <span className="shrink-0 font-semibold tabular-nums">{priceLabel(s, locale)}</span>
           </div>
         ))}
       </div>
@@ -275,21 +278,21 @@ function Card({ card, accent, clinic }: { card: AssistantCard; accent: string; c
       <div className="overflow-hidden rounded-2xl border bg-ink-850 text-[13px]" style={{ borderColor: `color-mix(in oklab, ${accent} 35%, transparent)` }}>
         <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: `color-mix(in oklab, ${accent} 12%, transparent)` }}>
           <span className="flex items-center gap-1.5 font-semibold">
-            <Icon name={a.status === "cancelled" ? "close" : a.changes.length ? "refresh" : "check"} className="h-4 w-4" /> {card.title ?? `Appointment ${a.reference}`}
+            <Icon name={a.status === "cancelled" ? "close" : a.changes.length ? "refresh" : "check"} className="h-4 w-4" /> {card.title ?? t("Appointment {ref}", { ref: a.reference })}
           </span>
-          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${st.cls}`}>{st.label}</span>
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${st.cls}`}>{t(st.label)}</span>
         </div>
         <div className="space-y-0.5 p-3">
           <p className="font-medium text-white/90">{a.serviceName}</p>
           <p className={`text-white/75 ${a.status === "cancelled" ? "line-through" : ""}`}>
-            {formatDate(a.date)} · {a.time}
+            {formatDate(a.date, locale)} · {a.time}
           </p>
           <p className="text-ink-400">
-            with {a.practitionerName} · {duration(a.durationMinutes)} · ref. {a.reference}
+            {t("with {name}", { name: a.practitionerName })} · {duration(a.durationMinutes, locale)} · {t("ref.")} {a.reference}
           </p>
           {a.status !== "cancelled" && (
             <Link href={`/demo/${clinic.slug}/manage?ref=${a.reference}`} className="mt-1 inline-flex items-center gap-1 text-xs font-semibold" style={{ color: accent }}>
-              Manage booking <Icon name="arrow" className="h-3.5 w-3.5" />
+              {t("Manage booking")} <Icon name="arrow" className="h-3.5 w-3.5" />
             </Link>
           )}
         </div>
@@ -302,8 +305,8 @@ function Card({ card, accent, clinic }: { card: AssistantCard; accent: string; c
         <Icon name="phone" className="h-4 w-4" />
       </span>
       <span>
-        <span className="block text-sm font-semibold">{card.phone}</span>
-        <span className="text-xs text-ink-400">Call {clinic.name}</span>
+        <span className="block text-sm font-semibold" dir="ltr">{card.phone}</span>
+        <span className="text-xs text-ink-400">{t("Call {name}", { name: clinic.name })}</span>
       </span>
     </a>
   );

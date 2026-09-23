@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
 import { Icon } from "@/components/ui/Icon";
 import { CLINIC_TYPES, OFFERINGS } from "@/lib/demo/catalog";
+import { useT } from "@/components/i18n/I18nProvider";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 type MenuKey = "solutions" | "clinics" | null;
 
@@ -16,6 +18,7 @@ export function SiteHeader() {
   const [mobileSection, setMobileSection] = useState<MenuKey>(null);
   const path = usePathname();
   const ref = useRef<HTMLElement>(null);
+  const t = useT();
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 12);
@@ -48,7 +51,7 @@ export function SiteHeader() {
       aria-expanded={menu === key}
       aria-haspopup="true"
     >
-      {label}
+      {t(label)}
       <svg viewBox="0 0 20 20" className={`h-4 w-4 transition ${menu === key ? "rotate-180" : ""}`} fill="currentColor" aria-hidden>
         <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" />
       </svg>
@@ -59,27 +62,28 @@ export function SiteHeader() {
     <header ref={ref} className={`fixed inset-x-0 top-0 z-40 transition ${scrolled || mobile || menu ? "border-b border-white/8 bg-ink-950/90 backdrop-blur-xl" : ""}`} onMouseLeave={() => setMenu(null)}>
       <div className="container-x flex h-16 items-center justify-between gap-4">
         <Logo />
-        <nav className="hidden items-center gap-0.5 xl:flex" aria-label="Main menu">
+        <nav className="hidden items-center gap-0.5 xl:flex" aria-label={t("Main menu")}>
           {trigger("solutions", "Solutions")}
           {trigger("clinics", "Clinic types")}
           <Link href="/#pricing" className="rounded-full px-2.5 py-2 text-sm whitespace-nowrap text-ink-300 hover:text-white">
-            Pricing
+            {t("Pricing")}
           </Link>
           <Link href="/demo" className="rounded-full px-2.5 py-2 text-sm whitespace-nowrap text-ink-300 hover:text-white">
-            Demo clinics
+            {t("Demo clinics")}
           </Link>
           <Link href="/admin" className="rounded-full px-2.5 py-2 text-sm whitespace-nowrap text-ink-300 hover:text-white">
-            Backend demo
+            {t("Backend demo")}
           </Link>
         </nav>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher className="hidden sm:flex" />
           <Link href="/contact" className="btn-ghost hidden !py-2.5 whitespace-nowrap 2xl:inline-flex">
-            Book a demo
+            {t("Book a demo")}
           </Link>
           <Link href="/#demo" className="btn-primary hidden !py-2.5 whitespace-nowrap md:inline-flex xl:max-[1400px]:hidden">
-            Try the AI receptionist
+            {t("Try the AI receptionist")}
           </Link>
-          <button onClick={() => setMobile((o) => !o)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 xl:hidden" aria-label="Menu" aria-expanded={mobile}>
+          <button onClick={() => setMobile((o) => !o)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 xl:hidden" aria-label={t("Menu")} aria-expanded={mobile}>
             <Icon name={mobile ? "close" : "menu"} />
           </button>
         </div>
@@ -96,29 +100,29 @@ export function SiteHeader() {
                     <Link key={o.key} href={`/#${o.key}`} onClick={() => setMenu(null)} className="group flex gap-3 rounded-2xl p-3 transition hover:bg-white/5">
                       <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/5 text-xl transition group-hover:bg-sage-500/20">{o.emoji}</span>
                       <span>
-                        <span className="block text-sm font-semibold">{o.title}</span>
-                        <span className="block text-xs text-ink-400">{o.short}</span>
+                        <span className="block text-sm font-semibold">{t(o.title)}</span>
+                        <span className="block text-xs text-ink-400">{t(o.short)}</span>
                       </span>
                     </Link>
                   ))}
                 </div>
                 <div className="rounded-3xl bg-gradient-to-br from-sage-500/25 to-ink-900 p-6 ring-1 ring-sage-500/20">
-                  <p className="text-sm font-semibold">Focus: calls & voice</p>
-                  <p className="mt-2 text-sm text-ink-300">The AI answers your phone and your website – and books, rebooks and cancels straight into your calendar.</p>
+                  <p className="text-sm font-semibold">{t("Focus: calls & voice")}</p>
+                  <p className="mt-2 text-sm text-ink-300">{t("The AI answers your phone and your website – and books, rebooks and cancels straight into your calendar.")}</p>
                   <Link href="/#pricing" onClick={() => setMenu(null)} className="btn-primary mt-5 !py-2.5">
-                    See pricing
+                    {t("See pricing")}
                   </Link>
                 </div>
               </div>
             ) : (
               <div>
-                <p className="mb-4 text-xs font-bold tracking-wider text-ink-400 uppercase">What kind of clinic do you run?</p>
+                <p className="mb-4 text-xs font-bold tracking-wider text-ink-400 uppercase">{t("What kind of clinic do you run?")}</p>
                 <div className="grid grid-cols-7 gap-3">
                   {CLINIC_TYPES.map((v) => (
                     <Link key={v.slug} href={`/clinics/${v.slug}`} onClick={() => setMenu(null)} className="group rounded-2xl border border-white/8 bg-ink-900 p-4 transition hover:-translate-y-0.5 hover:border-sage-500/40">
                       <span className="text-2xl">{v.emoji}</span>
-                      <span className="mt-2 block text-sm font-semibold">{v.name}</span>
-                      <span className="mt-1 block text-[10.5px] text-ink-400">{v.pain}</span>
+                      <span className="mt-2 block text-sm font-semibold">{t(v.name)}</span>
+                      <span className="mt-1 block text-[10.5px] text-ink-400">{t(v.pain)}</span>
                     </Link>
                   ))}
                 </div>
@@ -130,7 +134,7 @@ export function SiteHeader() {
 
       {/* Mobile menu */}
       {mobile && (
-        <nav className="container-x max-h-[calc(100dvh-4rem)] overflow-y-auto pb-6 xl:hidden" aria-label="Mobile menu">
+        <nav className="container-x max-h-[calc(100dvh-4rem)] overflow-y-auto pb-6 xl:hidden" aria-label={t("Mobile menu")}>
           {(
             [
               ["solutions", "Solutions"],
@@ -139,19 +143,19 @@ export function SiteHeader() {
           ).map(([key, label]) => (
             <div key={key} className="border-b border-white/5">
               <button onClick={() => setMobileSection((s) => (s === key ? null : key))} className="flex w-full items-center justify-between py-3.5 text-base">
-                {label} <span className="text-ink-400">{mobileSection === key ? "−" : "+"}</span>
+                {t(label)} <span className="text-ink-400">{mobileSection === key ? "−" : "+"}</span>
               </button>
               {mobileSection === key && (
                 <div className="grid grid-cols-2 gap-2 pb-4">
                   {key === "solutions"
                     ? OFFERINGS.map((o) => (
                         <Link key={o.key} href={`/#${o.key}`} onClick={() => setMobile(false)} className="rounded-xl bg-white/5 px-3 py-2.5 text-sm">
-                          {o.emoji} {o.title}
+                          {o.emoji} {t(o.title)}
                         </Link>
                       ))
                     : CLINIC_TYPES.map((v) => (
                         <Link key={v.slug} href={`/clinics/${v.slug}`} onClick={() => setMobile(false)} className="rounded-xl bg-white/5 px-3 py-2.5 text-sm">
-                          {v.emoji} {v.name}
+                          {v.emoji} {t(v.name)}
                         </Link>
                       ))}
                 </div>
@@ -166,11 +170,12 @@ export function SiteHeader() {
             ["/contact", "Book a demo"],
           ].map(([href, label]) => (
             <Link key={href} href={href} onClick={() => setMobile(false)} className="block border-b border-white/5 py-3.5 text-base">
-              {label}
+              {t(label)}
             </Link>
           ))}
+          <LanguageSwitcher className="mt-4 w-fit" />
           <Link href="/#demo" onClick={() => setMobile(false)} className="btn-primary mt-4 w-full">
-            Try the AI receptionist
+            {t("Try the AI receptionist")}
           </Link>
         </nav>
       )}
