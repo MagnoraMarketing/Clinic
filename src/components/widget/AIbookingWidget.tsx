@@ -13,6 +13,8 @@ declare global {
   interface Window {
     AIbookingConfig?: Record<string, unknown>;
     AIbooking?: { open?: (opts?: { message?: string }) => void; close?: () => void };
+    /** API exposed by aibooking-backend widget.js */
+    aibooking?: { open?: () => void; close?: () => void; toggle?: () => void };
   }
 }
 
@@ -90,7 +92,8 @@ export function AIbookingWidget({ clinic, catalog }: { clinic: Clinic; catalog: 
       const detail = (e as CustomEvent<OpenDetail>).detail ?? {};
       const msg = detail.message;
       if (ext.mode === "script") {
-        if (window.AIbooking?.open) window.AIbooking.open({ message: msg });
+        if (window.aibooking?.open) window.aibooking.open();
+        else if (window.AIbooking?.open) window.AIbooking.open({ message: msg });
         else setHint(true);
         return;
       }
@@ -127,7 +130,7 @@ export function AIbookingWidget({ clinic, catalog }: { clinic: Clinic; catalog: 
             <span className="h-1.5 w-1.5 animate-pulse rounded-full" style={{ background: accent }} /> Live test
           </p>
           <p className="mt-1.5 text-sm font-semibold">Try the AI receptionist here</p>
-          <p className="mt-1 text-xs text-ink-300">Click the button below – book, move or cancel an appointment, or ask about prices.</p>
+          <p className="mt-1 text-xs text-ink-300">Click the button below and talk to the receptionist – book, move or cancel an appointment, or ask about prices.</p>
           <span className={`absolute -bottom-1.5 h-3 w-3 rotate-45 border-r border-b border-white/10 bg-ink-900 ${left ? "left-8" : "right-8"}`} />
         </div>
       </div>

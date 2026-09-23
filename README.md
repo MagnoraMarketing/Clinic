@@ -61,7 +61,7 @@ npm run build                # production build (typecheck included)
 npm run test:assistant       # smoke test: real booking, rebooking & cancellation conversations
 ```
 
-Without environment variables the app runs in **demo mode**: in-memory data with demo appointments and calls, open admin, and the built-in English clinic receptionist (chat + voice via the browser's Web Speech API, `en-GB`). Point `NEXT_PUBLIC_AIBOOKING_WIDGET_URL` at a clinic agent's `widget.js` to use the real AIbooking widget instead.
+Without environment variables the app runs in **demo mode**: in-memory data with demo appointments and calls, open admin, and the AIbooking "Clinic" voice agent (`widget.js`, `data-widget-id="NuQB1HFdM8Q3MI"`). Set `NEXT_PUBLIC_AIBOOKING_WIDGET_URL=` (empty) to use the built-in English demo receptionist instead (chat + voice via the browser's Web Speech API, `en-GB`).
 
 ## Focus: inbound calls & the AI voice widget
 
@@ -99,9 +99,9 @@ Practice system ─────┘       POST /api/webhooks, /api/calls  buffers
 ### AIbooking widget
 | Variable | Effect |
 | --- | --- |
-| `NEXT_PUBLIC_AIBOOKING_WIDGET_URL` ends in `.js` | The script is loaded with `data-agent-id`, `data-clinic-id`, `data-language="en"` and `window.AIbookingConfig` |
+| `NEXT_PUBLIC_AIBOOKING_WIDGET_URL` ends in `.js` (default) | The script is loaded with `data-widget-id` (`NEXT_PUBLIC_AIBOOKING_WIDGET_ID`, default `NuQB1HFdM8Q3MI`). Buttons on the page open it via `window.aibooking.open()` |
 | `NEXT_PUBLIC_AIBOOKING_WIDGET_URL` other URL | Shown as an iframe (`?agentId=…&clinicId=…&language=en`) |
-| not set / empty (default) | Built-in English clinic receptionist |
+| set to empty | Built-in English demo receptionist |
 
 Agent ids can be set per clinic (admin → AI receptionist / table `ai_agents`) and fall back to `NEXT_PUBLIC_AIBOOKING_AGENT_ID`.
 
