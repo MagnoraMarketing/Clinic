@@ -3,14 +3,21 @@
 -- same platform without data being mixed. Row Level Security is enabled on all
 -- tables: users only see data for the clinics they belong to (via the users table).
 -- The server uses the service role key, which bypasses RLS.
+--
+-- Everything lives in its own Postgres schema, "clinic", so the app can share a
+-- Supabase project with the AIbooking backend (which uses "public") without any
+-- table, function or policy being mixed up or overwritten. After running this file,
+-- add "clinic" under Supabase → Project Settings → Data API → Exposed schemas.
 
-create extension if not exists "pgcrypto";
-create extension if not exists "btree_gist"; -- for the no-double-booking constraint
+create schema if not exists clinic;
+
+create extension if not exists "pgcrypto" with schema extensions;
+create extension if not exists "btree_gist" with schema extensions; -- for the no-double-booking constraint
 
 -- ---------------------------------------------------------------------------
 -- Clinics (tenants)
 -- ---------------------------------------------------------------------------
-create table if not exists clinics (
+create table if not exists clinic.clinics (
   id              uuid primary key default gen_random_uuid(),
   slug            text not null unique check (slug ~ '^[a-z0-9-]+$'),
   name            text not null,
@@ -33,8 +40,8 @@ create table if not exists clinics (
   updated_at      timestamptz not null default now()
 );
 
-create table if not exists clinic_settings (
-  clinic_id       uuid primary key references clinics(id) on delete cascade,
+create table if not exists clinic.clinic_settings (
+  clinic_id       uuid primary key references clinic.clinics(id) on delete cascade,
   opening_hours   jsonb not null default '[]'::jsonb,   -- [{day,open,close,closed}]
   booking         jsonb not null default '{"enabled":true,"slotMinutes":15,"bufferMinutes":10,"minNoticeHours":2,"maxDaysAhead":60,"cancellationHours":24,"lateCancellationFee":0,"confirmNewClients":false,"rules":""}'::jsonb,
   payment_methods text[] not null default array['card','mobilepay']::text[],
@@ -43,31 +50,31 @@ create table if not exists clinic_settings (
 );
 
 -- Platform users (clinic owners/staff) linked to Supabase Auth
-create table if not exists users (
+create table if not exists clinic.users (
   id              uuid primary key references auth.users(id) on delete cascade,
-  clinic_id       uuid not null references clinics(id) on delete cascade,
+  clinic_id       uuid not null references clinic.clinics(id) on delete cascade,
   email           text not null,
   name            text not null default '',
   role            text not null default 'staff' check (role in ('owner','manager','staff')),
   created_at      timestamptz not null default now()
 );
-create index if not exists users_clinic_idx on users(clinic_id);
+create index if not exists users_clinic_idx on clinic.users(clinic_id);
 
 -- ---------------------------------------------------------------------------
 -- Price list: categories, services, practitioners
 -- ---------------------------------------------------------------------------
-create table if not exists service_categories (
+create table if not exists clinic.service_categories (
   id              uuid primary key default gen_random_uuid(),
-  clinic_id       uuid not null references clinics(id) on delete cascade,
+  clinic_id       uuid not null references clinic.clinics(id) on delete cascade,
   name            text not null,
   emoji           text not null default '',
   sort_order      integer not null default 0
 );
-create index if not exists service_categories_clinic_idx on service_categories(clinic_id);
+create index if not exists service_categories_clinic_idx on clinic.service_categories(clinic_id);
 
-create table if not exists practitioners (
+create table if not exists clinic.practitioners (
   id              uuid primary key default gen_random_uuid(),
-  clinic_id       uuid not null references clinics(id) on delete cascade,
+  clinic_id       uuid not null references clinic.clinics(id) on delete cascade,
   name            text not null,
   title           text not null default '',
   bio             text not null default '',
@@ -76,12 +83,12 @@ create table if not exists practitioners (
   active          boolean not null default true,
   sort_order      integer not null default 0
 );
-create index if not exists practitioners_clinic_idx on practitioners(clinic_id);
+create index if not exists practitioners_clinic_idx on clinic.practitioners(clinic_id);
 
-create table if not exists services (
+create table if not exists clinic.services (
   id               uuid primary key default gen_random_uuid(),
-  clinic_id        uuid not null references clinics(id) on delete cascade,
-  category_id      uuid references service_categories(id) on delete set null,
+  clinic_id        uuid not null references clinic.clinics(id) on delete cascade,
+  category_id      uuid references clinic.service_categories(id) on delete set null,
   name             text not null,
   description      text not null default '',
   duration_minutes integer not null check (duration_minutes between 5 and 480),
@@ -95,14 +102,14 @@ create table if not exists services (
   practitioner_ids uuid[] not null default array[]::uuid[],   -- empty = all practitioners
   sort_order       integer not null default 0
 );
-create index if not exists services_clinic_idx on services(clinic_id);
+create index if not exists services_clinic_idx on clinic.services(clinic_id);
 
 -- ---------------------------------------------------------------------------
 -- Appointments
 -- ---------------------------------------------------------------------------
-create table if not exists appointments (
+create table if not exists clinic.appointments (
   id                uuid primary key default gen_random_uuid(),
-  clinic_id         uuid not null references clinics(id) on delete cascade,
+  clinic_id         uuid not null references clinic.clinics(id) on delete cascade,
   reference         text not null,
   source            text not null default 'website' check (source in ('website','chat','voice','phone','api')),
   status            text not null default 'confirmed'
@@ -110,9 +117,9 @@ create table if not exists appointments (
   date              date not null,
   time              time not null,
   duration_minutes  integer not null,
-  service_id        uuid references services(id) on delete set null,
+  service_id        uuid references clinic.services(id) on delete set null,
   service_name      text not null,
-  practitioner_id   uuid not null references practitioners(id) on delete restrict,
+  practitioner_id   uuid not null references clinic.practitioners(id) on delete restrict,
   practitioner_name text not null,
   price             numeric(10,2) not null default 0,
   customer_name     text not null,
@@ -133,15 +140,15 @@ create table if not exists appointments (
   constraint appointments_no_overlap exclude using gist (practitioner_id with =, slot with &&)
     where (status in ('pending','confirmed','checked_in','completed'))
 );
-create index if not exists appointments_clinic_date_idx on appointments(clinic_id, date);
-create index if not exists appointments_phone_idx on appointments(clinic_id, customer_phone);
+create index if not exists appointments_clinic_date_idx on clinic.appointments(clinic_id, date);
+create index if not exists appointments_phone_idx on clinic.appointments(clinic_id, customer_phone);
 
 -- ---------------------------------------------------------------------------
 -- Calls handled by the AI receptionist (AIbooking Voice)
 -- ---------------------------------------------------------------------------
-create table if not exists calls (
+create table if not exists clinic.calls (
   id              uuid primary key default gen_random_uuid(),
-  clinic_id       uuid not null references clinics(id) on delete cascade,
+  clinic_id       uuid not null references clinic.clinics(id) on delete cascade,
   from_number     text not null default '',
   channel         text not null default 'phone' check (channel in ('phone','voice_widget')),
   started_at      timestamptz not null default now(),
@@ -150,15 +157,15 @@ create table if not exists calls (
                   check (outcome in ('booking','rebooking','cancellation','question','transfer','missed')),
   summary         text not null default '',
   transcript      jsonb not null default '[]'::jsonb,   -- [{who:'caller'|'ai',text}]
-  appointment_id  uuid references appointments(id) on delete set null
+  appointment_id  uuid references clinic.appointments(id) on delete set null
 );
-create index if not exists calls_clinic_idx on calls(clinic_id, started_at desc);
+create index if not exists calls_clinic_idx on clinic.calls(clinic_id, started_at desc);
 
 -- ---------------------------------------------------------------------------
 -- AI agents, integrations, webhook log
 -- ---------------------------------------------------------------------------
-create table if not exists ai_agents (
-  clinic_id       uuid primary key references clinics(id) on delete cascade,
+create table if not exists clinic.ai_agents (
+  clinic_id       uuid primary key references clinic.clinics(id) on delete cascade,
   agent_id        text,
   voice_agent_id  text,
   chat_agent_id   text,
@@ -170,18 +177,18 @@ create table if not exists ai_agents (
   enabled         boolean not null default true
 );
 
-create table if not exists integrations (
+create table if not exists clinic.integrations (
   id              uuid primary key default gen_random_uuid(),
-  clinic_id       uuid not null references clinics(id) on delete cascade,
+  clinic_id       uuid not null references clinic.clinics(id) on delete cascade,
   kind            text not null check (kind in ('aibooking_calendar','calendar_sync','practice_system','sms','custom_api')),
   enabled         boolean not null default false,
   config          jsonb not null default '{}'::jsonb,   -- never store secrets here in plain text – use Vault
   unique (clinic_id, kind)
 );
 
-create table if not exists webhook_log (
+create table if not exists clinic.webhook_log (
   id              uuid primary key default gen_random_uuid(),
-  clinic_id       uuid references clinics(id) on delete cascade,
+  clinic_id       uuid references clinic.clinics(id) on delete cascade,
   direction       text not null check (direction in ('inbound','outbound')),
   event           text not null,
   target          text not null default '',
@@ -189,30 +196,45 @@ create table if not exists webhook_log (
   detail          text,
   created_at      timestamptz not null default now()
 );
-create index if not exists webhook_log_clinic_idx on webhook_log(clinic_id, created_at desc);
+create index if not exists webhook_log_clinic_idx on clinic.webhook_log(clinic_id, created_at desc);
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security: users only see their own clinic's rows
 -- ---------------------------------------------------------------------------
-create or replace function current_clinic_ids() returns setof uuid
-language sql stable security definer set search_path = public as $$
-  select clinic_id from users where id = auth.uid()
+create or replace function clinic.current_clinic_ids() returns setof uuid
+language sql stable security definer set search_path = clinic as $$
+  select clinic_id from clinic.users where id = auth.uid()
 $$;
 
 do $$
 declare t text;
 begin
   foreach t in array array['clinic_settings','service_categories','practitioners','services','appointments','calls','ai_agents','integrations','webhook_log'] loop
-    execute format('alter table %I enable row level security', t);
-    execute format('drop policy if exists %I on %I', t || '_tenant', t);
-    execute format('create policy %I on %I for all using (clinic_id in (select current_clinic_ids())) with check (clinic_id in (select current_clinic_ids()))', t || '_tenant', t);
+    execute format('alter table clinic.%I enable row level security', t);
+    execute format('drop policy if exists %I on clinic.%I', t || '_tenant', t);
+    execute format('create policy %I on clinic.%I for all using (clinic_id in (select clinic.current_clinic_ids())) with check (clinic_id in (select clinic.current_clinic_ids()))', t || '_tenant', t);
   end loop;
 end $$;
 
-alter table clinics enable row level security;
-drop policy if exists clinics_tenant on clinics;
-create policy clinics_tenant on clinics for all using (id in (select current_clinic_ids())) with check (id in (select current_clinic_ids()));
+alter table clinic.clinics enable row level security;
+drop policy if exists clinics_tenant on clinic.clinics;
+create policy clinics_tenant on clinic.clinics for all using (id in (select clinic.current_clinic_ids())) with check (id in (select clinic.current_clinic_ids()));
 
-alter table users enable row level security;
-drop policy if exists users_self on users;
-create policy users_self on users for select using (id = auth.uid() or clinic_id in (select current_clinic_ids()));
+alter table clinic.users enable row level security;
+drop policy if exists users_self on clinic.users;
+create policy users_self on clinic.users for select using (id = auth.uid() or clinic_id in (select clinic.current_clinic_ids()));
+
+-- ---------------------------------------------------------------------------
+-- Data API access to the clinic schema (the app uses the service role; the
+-- authenticated role is limited by the RLS policies above; anon gets nothing)
+-- ---------------------------------------------------------------------------
+grant usage on schema clinic to service_role, authenticated;
+grant all on all tables in schema clinic to service_role;
+grant all on all routines in schema clinic to service_role;
+grant all on all sequences in schema clinic to service_role;
+grant select, insert, update, delete on all tables in schema clinic to authenticated;
+grant execute on function clinic.current_clinic_ids() to authenticated;
+revoke execute on function clinic.current_clinic_ids() from public, anon;
+alter default privileges in schema clinic grant all on tables to service_role;
+alter default privileges in schema clinic grant all on routines to service_role;
+alter default privileges in schema clinic grant all on sequences to service_role;

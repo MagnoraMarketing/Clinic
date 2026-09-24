@@ -13,6 +13,8 @@ export const serverEnv = {
 
   supabaseUrl: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+  /** Postgres schema holding the clinic tables – keeps them apart from other apps in the same Supabase project. */
+  supabaseSchema: process.env.SUPABASE_DB_SCHEMA || "clinic",
 
   adminApiKey: process.env.ADMIN_API_KEY || "",
   adminPassword: process.env.ADMIN_PASSWORD || "",
