@@ -116,6 +116,8 @@ Practice system ─────┘       POST /api/webhooks, /api/calls  buffers
 | `NEXT_PUBLIC_AIBOOKING_WIDGET_URL` other URL | Shown as an iframe (`?agentId=…&clinicId=…&language=en`) |
 | set to empty | Built-in English demo receptionist |
 
+Booking through the widget (like the restaurant site) needs an agent on the **Vapi** engine with Cal.com connected – see [`docs/clinic-agent.md`](docs/clinic-agent.md) for the setup and the clinic prompt.
+
 Agent ids can be set per clinic (admin → AI receptionist / table `ai_agents`) and fall back to `NEXT_PUBLIC_AIBOOKING_AGENT_ID`.
 
 ### Phone line
