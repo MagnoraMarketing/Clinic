@@ -10,10 +10,11 @@ import type { Repository, WebhookLogEntry } from "./types";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Row = Record<string, any>;
 
-let client: SupabaseClient | null = null;
+let client: SupabaseClient<any, any, any> | null = null;
 const db = () =>
   (client ??= createClient(serverEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    db: { schema: serverEnv.supabaseSchema },
   }));
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

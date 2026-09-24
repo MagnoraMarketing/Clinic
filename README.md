@@ -141,11 +141,14 @@ Admin access = `DEMO_MODE=true`, admin cookie (login at `/admin/login`) or `Auth
 
 ## Supabase
 
-1. Create a project and run `supabase/migrations/0001_init.sql` (SQL editor or `supabase db push`).
-2. Run `supabase/seed.sql` for the demo clinics (generated with `npm run db:seed-sql`).
-3. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (server-side only).
+All tables, the RLS helper function and the policies live in their own Postgres schema, `clinic`. That means the app can run in its own Supabase project **or** share one with another app (e.g. the aibooking.dk backend, which uses `public`) without anything being mixed up or overwritten.
 
-All tenant tables have `clinic_id`, and Row Level Security limits users (table `users`, linked to Supabase Auth) to their own clinic.
+1. Run `supabase/migrations/0001_init.sql` in the SQL editor (or `supabase db push`). It only creates objects in `clinic` and is safe to re-run.
+2. Run `supabase/seed.sql` for the demo clinics (generated with `npm run db:seed-sql`).
+3. Project Settings → Data API → **Exposed schemas**: add `clinic` (keep the existing ones) and save.
+4. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (server-side only). `SUPABASE_DB_SCHEMA` defaults to `clinic`.
+
+All tenant tables have `clinic_id`, and Row Level Security limits users (table `clinic.users`, linked to Supabase Auth) to their own clinic.
 
 ## Deploy on Vercel
 
